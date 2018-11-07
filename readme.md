@@ -1,4 +1,4 @@
-# Marblegame - Contracts
+# MarbleCards - Contracts
 
 Contracts supporting marblegame collectibles and other cool stuff
 
