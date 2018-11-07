@@ -1,0 +1,28 @@
+{
+  "name": "marblegame-contracts",
+  "version": "1.0.0",
+  "description": "Kelta wallets app - naive solution to collect ICO eth",
+  "scripts": {
+    "clean": "rm -Rf ./build/contracts",
+    "compile": "truffle compile",
+    "console": "truffle console",
+    "flatten": "mkdir -p build && truffle-flattener contracts/**/*.sol >> build/bundle.sol",
+    "migrate": "truffle migrate",
+    "networks": "truffle networks",
+    "debug": "truffle debug",
+    "postpublish": "npm run clean",
+    "prepublish": "npm run compile",
+    "test": "truffle test"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "5.0.1",
+    "ethjs-util": "^0.1.6",
+    "truffle": "4.1.12",
+    "truffle-flattener": "^1.2.5"
+  },
+  "dependencies": {
+    "@0xcert/ethereum-erc721": "1.10.0",
+    "@0xcert/ethereum-utils": "1.1.0"
+  }
+}

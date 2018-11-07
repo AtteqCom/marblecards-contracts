@@ -1,0 +1,12 @@
+builder:
+  links:
+    - geth
+    - ganache
+geth:
+  image: ethereum/client-go
+  entrypoint: ["/bin/sh", "/docker-entrypoint/start.ropsten.sh"]
+  environment:
+    SET_CONTAINER_TIMEZONE: 'True'
+    CONTAINER_TIMEZONE: Europe/Prague
+  volumes:
+    - "./docker/geth/:/docker-entrypoint"
