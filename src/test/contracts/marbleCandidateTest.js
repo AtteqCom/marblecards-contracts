@@ -1,4 +1,4 @@
- const MarbleNFTCandidate = artifacts.require("./MarbleNFTCandidate.sol");
+const MarbleNFTCandidate = artifacts.require("./MarbleNFTCandidate.sol");
 
 const assertRevert = require('../utils/assertRevert');
 const [rick, morty, summer, beth, jerry] = require("../utils/actors.js");
@@ -24,13 +24,14 @@ contract("MarbleCandidateTest", accounts => {
   it("returns correct count of NFT candidates after creation", async () => {
     await candidateContract.createCandidate(rick.uri, {from: rick.account, value: rick.payment});
     await candidateContract.createCandidate(morty.uri, {from: morty.account, value: morty.payment});
+    let count = await candidateContract.getCandidatesCount();
+    console.log(count + " ----- -");
 
-    assert.equal(await candidateContract.getCandidatesCount(), 2);
+    assert.equal(count, 2);
   });
 
   it("throws trying to create candidate with same URI", async () => {
-    await candidateContract.createCandidate(beth.uri, {from: beth.account, value: beth.payment});
-    await assertRevert(candidateContract.createCandidate(beth.uri, {from: beth.account, value: beth.payment}));
+    await assertRevert(candidateContract.createCandidate(rick.uri, {from: beth.account, value: rick.payment}));
   });
 
   it("throws trying to create candidate with empty URI", async () => {

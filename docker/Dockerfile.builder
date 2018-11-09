@@ -6,7 +6,6 @@ ADD ./src /marblegame
 WORKDIR /marblegame
 
 ADD ./package.json /marblegame
-ADD ./docker/builder /marblegame
 
 RUN npm install -g truffle
 RUN npm install

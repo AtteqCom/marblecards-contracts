@@ -29,39 +29,39 @@ contract("MarbleNFTTest", accounts => {
 
   it("returns correct count of NFTs after minting", async () => {
 
-    await nftContract.mint(1, rick.account, rick.uri, rick.tokenUri, timeOfCreation, {from: owner});
-    await nftContract.mint(2, beth.account, beth.uri, beth.tokenUri, Date.now(), {from: owner});
-    await nftContract.mint(3, summer.account, summer.uri, summer.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(rick.token, rick.account, rick.uri, rick.tokenUri, timeOfCreation, {from: owner});
+    await nftContract.mint(beth.token, beth.account, beth.uri, beth.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(summer.token, summer.account, summer.uri, summer.tokenUri, Date.now(), {from: owner});
 
     assert.equal(await nftContract.totalSupply(), 3);
   });
 
   it("throws trying to create NFT with empty URI", async () => {
-    await assertRevert(nftContract.mint(4, morty.account, "", morty.tokenUri, Date.now(), {from: owner}));
+    await assertRevert(nftContract.mint(morty.token, morty.account, "", morty.tokenUri, Date.now(), {from: owner}));
   });
 
   it("throws trying to create NFT with duplicate URI", async () => {
-    await assertRevert(nftContract.mint(4, morty.account, summer.uri, morty.tokenUri, Date.now(), {from: owner}));
+    await assertRevert(nftContract.mint(morty.token, morty.account, summer.uri, morty.tokenUri, Date.now(), {from: owner}));
   });
 
   it("throws trying to mint without admins permissions", async () => {
-    await assertRevert(nftContract.mint(4, morty.account, morty.uri, morty.tokenUri, Date.now(), {from: jerry.account}));
+    await assertRevert(nftContract.mint(morty.token, morty.account, morty.uri, morty.tokenUri, Date.now(), {from: jerry.account}));
   });
 
   it("force approval over NFT", async () => {
-    await nftContract.forceApproval(3, jerry.account, {from: owner});
-    let approved = await nftContract.getApproved(3);
+    await nftContract.forceApproval(summer.token, jerry.account, {from: owner});
+    let approved = await nftContract.getApproved(summer.token);
 
     assert.equal(approved, jerry.account);
   });
 
   it("throws trying to force approval without admins permissions", async () => {
-    await assertRevert(nftContract.forceApproval(3, rick.account, {from: rick.account}));
+    await assertRevert(nftContract.forceApproval(summer.token, rick.account, {from: rick.account}));
   });
 
-  it("transfer ownership", async () => {
-    nftContract.transferFrom(summer.account, jerry.account, 3, {})
-    await assertRevert(nftContract.forceApproval(3, rick.account, {from: rick.account}));
+  it("transfer ownership after force approval", async () => {
+    nftContract.transferFrom(summer.account, jerry.account, summer.token, {from: jerry.account})
+    assert(await nftContract.ownerOf(summer.token), jerry.account);
   });
 
   it("gets NFT Source model by token ID", async () => {

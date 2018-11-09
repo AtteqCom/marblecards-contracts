@@ -1,6 +1,6 @@
 # MarbleCards - Contracts
 
-Contracts supporting marblegame collectibles and other cool stuff
+Contracts handling [Marble.cards](https://beta.marble.cards) collectibles and other stuff.
 
 ### Docker
 
@@ -37,7 +37,7 @@ To deploy contract over Ropsten network we have to set up account over geth node
 1. Run docker containers needed to deploy contracts
     ```
     docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml build
-    docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml up
+    docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml up -d
     ```
 
 2. Create *delete.me* file containing your private key
@@ -88,5 +88,5 @@ To deploy contract over Ropsten network we have to set up account over geth node
     truffle test ./test/contracts/marbleNFTTest.js
     truffle test ./test/contracts/marbleMintingAuctionTest.js
     truffle test ./test/contracts/marbleAuctionTest.js
-    truffle test ./test/contracts/marbleFactoryTest.js
+    truffle test ./test/contracts/marbleNFTFactoryTest.js
     ```
