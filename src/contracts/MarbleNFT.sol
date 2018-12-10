@@ -1,10 +1,9 @@
-pragma solidity ^0.4.24;
+ pragma solidity ^0.4.24;
 
 import "@0xcert/ethereum-erc721/contracts/tokens/NFTokenMetadata.sol";
 import "@0xcert/ethereum-erc721/contracts/tokens/NFTokenEnumerable.sol";
 import "./Adminable.sol";
 import "./MarbleNFTInterface.sol";
-import "./MarbleNFTLib.sol";
 
 /**
  * @title MARBLE NFT CONTRACT
@@ -54,7 +53,8 @@ contract MarbleNFT is
   /**
    * @dev Mints a new NFT.
    * @param _tokenId The unique number representing NFT
-   * @param _owner Current holder of Marble NFT
+   * @param _owner Holder of Marble NFT
+   * @param _creator Creator of Marble NFT
    * @param _uri URI representing NFT
    * @param _metadataUri URI pointing to "ERC721 Metadata JSON Schema"
    * @param _created date of creation of NFT candidate
@@ -62,6 +62,7 @@ contract MarbleNFT is
   function mint(
     uint256 _tokenId,
     address _owner,
+    address _creator,
     string _uri,
     string _metadataUri,
     uint256 _created
@@ -69,15 +70,15 @@ contract MarbleNFT is
     external
     onlyAdmin
   {
-    uint256 uriHash = MarbleNFTLib.getSourceUriHash(_uri);
+    uint256 uriHash = _getSourceUriHash(_uri);
 
-    require(uriHash != MarbleNFTLib.getSourceUriHash(""), "NFT URI can not be empty!");
+    require(uriHash != _getSourceUriHash(""), "NFT URI can not be empty!");
     require(sourceUriHashToId[uriHash] == 0, "NFT with same URI already exists!");
 
     _mint(_owner, _tokenId);
     _setTokenUri(_tokenId, _metadataUri);
 
-    idToMarbleNFTSource[_tokenId] = MarbleNFTSource(_uri, _owner, _created);
+    idToMarbleNFTSource[_tokenId] = MarbleNFTSource(_uri, _creator, _created);
     sourceUriHashToId[uriHash] = _tokenId;
   }
 
@@ -96,7 +97,7 @@ contract MarbleNFT is
     MarbleNFTSource memory marbleNFTSource = idToMarbleNFTSource[_tokenId];
 
     if (bytes(marbleNFTSource.uri).length != 0) {
-      uint256 uriHash = MarbleNFTLib.getSourceUriHash(marbleNFTSource.uri);
+      uint256 uriHash = _getSourceUriHash(marbleNFTSource.uri);
       delete sourceUriHashToId[uriHash];
       delete idToMarbleNFTSource[_tokenId];
     }
@@ -148,7 +149,7 @@ contract MarbleNFT is
     view
     returns (uint256 tokenId)
   {
-    return sourceUriHashToId[MarbleNFTLib.getSourceUriHash(_uri)];
+    return sourceUriHashToId[_getSourceUriHash(_uri)];
   }
 
   /**
@@ -187,5 +188,30 @@ contract MarbleNFT is
       idToOwner[_tokenId],
       marbleNFTSource.creator,
       marbleNFTSource.created);
+  }
+
+
+  /**
+   * @dev Transforms URI to hash.
+   * @param _uri URI to be transformed to hash.
+   */
+  function getSourceUriHash(string _uri)
+     external
+     view
+     returns(uint256 hash)
+  {
+     return _getSourceUriHash(_uri);
+  }
+
+  /**
+   * @dev Transforms URI to hash.
+   * @param _uri URI to be transformed to hash.
+   */
+  function _getSourceUriHash(string _uri)
+    internal
+    pure
+    returns(uint256 hash)
+  {
+    return uint256(keccak256(abi.encodePacked(_uri)));
   }
 }

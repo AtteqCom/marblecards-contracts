@@ -2,6 +2,12 @@
 
 Contracts handling [Marble.cards](https://beta.marble.cards) collectibles and other stuff.
 
+### Setup .env
+  Truffle.js is expecting env variables for running correctly. Place wallet password in form described below into file on path *~/src/.env*
+  ```
+    walletPsswd = "..."
+  ```
+
 ### Docker
 
 1. Run `docker-compose build` in root directory of repository.
@@ -20,17 +26,17 @@ There is no exposed ports. All we need is located over linked volumes.
 
 3. Use truffle to build it. Result will be in *~/build/contracts* folder.
     ```
-    truffle compile
+    npx truffle compile
     ```
 
 #### Migration - Ganache
 
 1. Ganache should be listening on 7545 if u did not change truffle configuration than just run
     ```
-    truffle migrate
+    npx truffle migrate
     ```
 
-#### Migration - Ropsten
+#### Migration - Ropsten (via Geth node)
 
 To deploy contract over Ropsten network we have to set up account over geth node unlock it and call truffle
 
@@ -67,11 +73,36 @@ To deploy contract over Ropsten network we have to set up account over geth node
     docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml exec builder bash
     ```
 
-8. Migrate script to Ropsten network
+8. Migrate script to Ropsten network via infrura
     ```
     # npm run clean
 
-    truffle migrate --network ropsten
+    npx truffle migrate --network infuraRopsten
+    ```
+
+#### Migration - Ropsten (via Infura)
+
+To deploy contract over Ropsten network we have to set up account over geth node unlock it and call truffle
+
+1. Create *.env* add *WALLET_MNEMONIC* and *INFURA_KEY*
+
+    ```
+    WALLET_MNEMONIC = ...
+    INFURA_KEY = ...
+    ```
+
+2. Run docker containers needed to deploy contracts
+    ```
+    docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml build
+    docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml up -d
+    docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml exec builder bash
+    ```
+
+3. Migrate script to Ropsten network via infrura
+    ```
+    # npm run clean
+
+    npx truffle migrate --network infuraRopsten
     ```
 
 #### Test - Ganache
@@ -83,10 +114,41 @@ To deploy contract over Ropsten network we have to set up account over geth node
 
 2. Run tests. Expecting 6 unlocked wallets. 1st wallet over node is consider as owner of contracts.
     ```
-    truffle test ./test/contracts/marbleIntegrityTest.js
-    truffle test ./test/contracts/marbleCandidateTest.js
-    truffle test ./test/contracts/marbleNFTTest.js
-    truffle test ./test/contracts/marbleMintingAuctionTest.js
-    truffle test ./test/contracts/marbleAuctionTest.js
-    truffle test ./test/contracts/marbleNFTFactoryTest.js
+    npx truffle test ./test/contracts/marbleIntegrityTest.js
+    npx truffle test ./test/contracts/marbleCandidateTest.js
+    npx truffle test ./test/contracts/marbleNFTTest.js
+    npx truffle test ./test/contracts/marbleMintingAuctionTest.js
+    npx truffle test ./test/contracts/marbleAuctionTest.js
+    npx truffle test ./test/contracts/marbleNFTFactoryTest.js
+    ```
+
+#### Test - Ropsten
+
+1. Enter builder container.
+    ```
+    docker-compose exec builder bash
+    ```
+
+2. Run tests. Expecting 6 unlocked wallets. Their PKs should be provided in *./src/.env* !!! DO NOT COMMIT THEM :))) !!!
+    ```
+    npx truffle test --network infuraRopstenTest ./test/contracts/marbleIntegrityTest.js
+    npx truffle test --network infuraRopstenTest ./test/contracts/marbleCandidateTest.js
+    npx truffle test --network infuraRopstenTest ./test/contracts/marbleNFTTest.js
+    npx truffle test --network infuraRopstenTest ./test/contracts/marbleMintingAuctionTest.js
+    npx truffle test --network infuraRopstenTest ./test/contracts/marbleAuctionTest.js
+    npx truffle test --network infuraRopstenTest ./test/contracts/marbleNFTFactoryTest.js
+    ```
+
+
+#### Extra deployments scripts
+
+*Copy NFTs to newly deployed contracts* it's neccessery to provide original factory contract
+    ```
+    npx truffle-deploy --network infuraRopsten ./deployments/001_copy_marbles.js
+    ```
+
+*Check deployed contracts* (over Ropsten via infura)
+
+    ```
+    npx truffle-deploy --network infuraRopsten ./deployments/002_show_deployed_contracts.js
     ```

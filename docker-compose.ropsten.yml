@@ -10,3 +10,5 @@ geth:
     CONTAINER_TIMEZONE: Europe/Prague
   volumes:
     - "./docker/geth/:/docker-entrypoint"
+    - "../gethNode/keystores/testnet:/root/.ethereum/testnet/keystore"
+    - "../gethNode/datasets/testnet:/root/.ethereum/testnet/geth"

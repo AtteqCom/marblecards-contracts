@@ -81,10 +81,23 @@ contract MarbleNFTFactory is
     marbleNFTContract.mint(
       _id,
       owner,
+      owner,
       _uri,
       _metadataUri,
-      created
+      now
     );
+  }
+
+  /**
+   * @dev Sets new last minted ID, !! use careful
+   * @param _lastMintedNFTId New value of last mineted NFT
+   */
+  function setLastMintedNFTId(uint256 _lastMintedNFTId)
+     external
+     onlyOwner
+     whenNotPaused
+  {
+      lastMintedNFTId = _lastMintedNFTId;
   }
 
   /**

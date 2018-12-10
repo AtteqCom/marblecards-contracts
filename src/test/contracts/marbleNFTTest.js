@@ -29,23 +29,23 @@ contract("MarbleNFTTest", accounts => {
 
   it("returns correct count of NFTs after minting", async () => {
 
-    await nftContract.mint(rick.token, rick.account, rick.uri, rick.tokenUri, timeOfCreation, {from: owner});
-    await nftContract.mint(beth.token, beth.account, beth.uri, beth.tokenUri, Date.now(), {from: owner});
-    await nftContract.mint(summer.token, summer.account, summer.uri, summer.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(rick.token, rick.account, rick.account, rick.uri, rick.tokenUri, timeOfCreation, {from: owner});
+    await nftContract.mint(beth.token, beth.account, beth.account, beth.uri, beth.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(summer.token, summer.account, summer.account, summer.uri, summer.tokenUri, Date.now(), {from: owner});
 
     assert.equal(await nftContract.totalSupply(), 3);
   });
 
   it("throws trying to create NFT with empty URI", async () => {
-    await assertRevert(nftContract.mint(morty.token, morty.account, "", morty.tokenUri, Date.now(), {from: owner}));
+    await assertRevert(nftContract.mint(morty.token, morty.account, morty.account, "", morty.tokenUri, Date.now(), {from: owner}));
   });
 
   it("throws trying to create NFT with duplicate URI", async () => {
-    await assertRevert(nftContract.mint(morty.token, morty.account, summer.uri, morty.tokenUri, Date.now(), {from: owner}));
+    await assertRevert(nftContract.mint(morty.token, morty.account, morty.account, summer.uri, morty.tokenUri, Date.now(), {from: owner}));
   });
 
   it("throws trying to mint without admins permissions", async () => {
-    await assertRevert(nftContract.mint(morty.token, morty.account, morty.uri, morty.tokenUri, Date.now(), {from: jerry.account}));
+    await assertRevert(nftContract.mint(morty.token, morty.account, morty.account, morty.uri, morty.tokenUri, Date.now(), {from: jerry.account}));
   });
 
   it("force approval over NFT", async () => {
@@ -65,7 +65,8 @@ contract("MarbleNFTTest", accounts => {
   });
 
   it("gets NFT Source model by token ID", async () => {
-    [nftSource.uri, nftSource.creator, nftSource.created] = await nftContract.tokenSource(1);
+    // DEPRECATED [nftSource.uri, nftSource.creator, nftSource.created] = await nftContract.tokenSource(1);
+    nftSource = await nftContract.tokenSource(1);
 
     assert.equal(nftSource.uri, rick.uri);
     assert.equal(nftSource.creator, rick.account);
@@ -78,7 +79,8 @@ contract("MarbleNFTTest", accounts => {
   });
 
   it("gets NFT model by ID", async () => {
-    [nft.id, nft.uri, nft.metadataUri, nft.owner, nft.creator, nft.created] = await nftContract.getNFT(1);
+    // DEPRECATED [nft.id, nft.uri, nft.metadataUri, nft.owner, nft.creator, nft.created] = await nftContract.getNFT(1);
+    nft = await nftContract.getNFT(1);
 
     assert.equal(nft.id, 1);
     assert.equal(nft.uri, rick.uri);

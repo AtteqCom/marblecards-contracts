@@ -16,10 +16,14 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "dotenv": "^6.2.0",
     "eslint": "5.0.1",
     "ethjs-util": "^0.1.6",
-    "truffle": "4.1.12",
-    "truffle-flattener": "^1.2.5"
+    "truffle": "^5.0.0-next.9",
+    "truffle-deploy": "^1.1.0",
+    "truffle-flattener": "^1.2.5",
+    "truffle-hdwallet-provider": "^1.0.0-web3one.1",
+    "truffle-hdwallet-provider-privkey": "^0.3.0"
   },
   "dependencies": {
     "@0xcert/ethereum-erc721": "1.10.0",

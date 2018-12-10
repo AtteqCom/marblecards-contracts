@@ -34,6 +34,12 @@ contract MarbleDutchAuction is
   event AuctioneerCutChanged(uint256 _auctioneerCut);
 
   /**
+   * @dev Reports change of auctioneer delayed cut.
+   * @param _auctioneerDelayedCancelCut Number between 0-10000 (1% is equal to 100)
+   */
+  event AuctioneerDelayedCancelCutChanged(uint256 _auctioneerDelayedCancelCut);
+
+  /**
    * @dev Reports removal of NFT from auction cotnract
    * @param _tokenId ID of token to auction, sender must be owner.
    */
@@ -102,6 +108,20 @@ contract MarbleDutchAuction is
     auctioneerCut = uint16(_cut);
 
     emit AuctioneerCutChanged(auctioneerCut);
+  }
+
+  /**
+   * @dev Sets new auctioneer delayed cut, in case we are not earning much during creating NFTs initial auctions!
+   * @param _cut Percent cut the auctioneer takes on each auction, must be between 0-10000. Values 0-10,000 map to 0%-100%.
+   */
+  function setAuctioneerDelayedCancelCut(uint256 _cut)
+    external
+    onlyAdmin
+  {
+    require(_cut <= 10000, "Delayed cut should be in interval of 0-10000");
+    auctioneerDelayedCancelCut = uint16(_cut);
+
+    emit AuctioneerDelayedCancelCutChanged(auctioneerDelayedCancelCut);
   }
 
   /**

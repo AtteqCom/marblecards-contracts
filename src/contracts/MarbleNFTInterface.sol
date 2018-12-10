@@ -21,6 +21,7 @@ interface MarbleNFTInterface {
   function mint(
     uint256 _tokenId,
     address _owner,
+    address _creator,
     string _uri,
     string _metadataUri,
     uint256 _created
@@ -94,4 +95,14 @@ interface MarbleNFTInterface {
       address creator,
       uint256 created
     );
+
+
+    /**
+     * @dev Transforms URI to hash.
+     * @param _uri URI to be transformed to hash.
+     */
+    function getSourceUriHash(string _uri)
+      external
+      view
+      returns(uint256 hash);
 }

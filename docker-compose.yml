@@ -13,6 +13,8 @@ builder:
     - "./src/contracts:/marblegame/contracts"
     - "./src/migrations:/marblegame/migrations"
     - "./src/test:/marblegame/test"
+    - "./src/deployments:/marblegame/deployments"
+
 ganache:
   image: trufflesuite/ganache-cli:latest
   command: ganache -p 7545 -h 0.0.0.0 --noVMErrorsOnRPCResponse

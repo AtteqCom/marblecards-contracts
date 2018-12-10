@@ -1,4 +1,4 @@
- pragma solidity ^0.4.24;
+pragma solidity ^0.4.24;
 
 import "@0xcert/ethereum-erc721/contracts/tokens/ERC721.sol";
 import "@0xcert/ethereum-utils/contracts/math/SafeMath.sol";
@@ -7,7 +7,7 @@ import "@0xcert/ethereum-utils/contracts/utils/AddressUtils.sol";
 
 /**
  * @title Dutch Auction Base
- * @dev Contains model defining Auction, public variables as reference to nftContract and AuctioneerCut. It is expected that auctioneer is owner of the contract. Dutch auction by wiki - https://en.wikipedia.org/wiki/Dutch_auction. Contract is inspired by https://github.com/nedodn/NFT-Auction and https://github.com/dapperlabs/cryptokitties-bounty/tree/master/contracts/Auction/
+ * @dev Contains model defining Auction, public variables as reference to nftContract. It is expected that auctioneer is owner of the contract. Dutch auction by wiki - https://en.wikipedia.org/wiki/Dutch_auction. Contract is inspired by https://github.com/nedodn/NFT-Auction and https://github.com/dapperlabs/cryptokitties-bounty/tree/master/contracts/Auction/
  * @notice Contract omits a fallback function to prevent accidental eth transfers.
  */
 contract DutchAuctionBase is
@@ -40,17 +40,16 @@ contract DutchAuctionBase is
 
   }
 
-  // Reference to contract tracking NFT ownership
-  ERC721 public nftContract;
-
-  // Tolerated time difference between miners in seconds
-  // TODO: we should deal somehow with miners +-30 seconds clocks allowance
-  // uint8 public minersTimeDifferenceAllowance;
-
   // Owner of the contract is considered as Auctioneer, so it supposed to have some share from successful sale.
   // Value in between 0-10000 (1% is equal to 100)
   uint16 public auctioneerCut;
 
+  // Cut representing auctioneers earnings from auction with delayed cancel
+  // Value in between 0-10000 (1% is equal to 100)
+  uint16 public auctioneerDelayedCancelCut;
+
+  // Reference to contract tracking NFT ownership
+  ERC721 public nftContract;
 
   // Maps Token ID with Auction
   mapping (uint256 => Auction) public tokenIdToAuction;
@@ -113,13 +112,16 @@ contract DutchAuctionBase is
       // Put seller address before auction is deleted.
       address seller = auction.seller;
 
+      // Keep auction type even after auction is deleted.
+      bool isCancelDelayed = auction.delayedCancel;
+
       // Remove the auction before sending the fees to the sender so we can't have a reentrancy attack.
       _removeAuction(_tokenId);
 
       // Transfer revenue to seller
       if (price > 0) {
           // Calculate the auctioneer's cut.
-          uint256 computedCut = _computeCut(price);
+          uint256 computedCut = _computeCut(price, isCancelDelayed);
           uint256 sellerRevenue = price.sub(computedCut);
 
           /**
@@ -199,12 +201,18 @@ contract DutchAuctionBase is
   /**
    * @dev Computes auctioneer's cut of a sale.
    * @param _price - Sale price of NFT.
+   * @param _isCancelDelayed - Determines what kind of cut is used for calculation
    */
-  function _computeCut(uint256 _price)
+  function _computeCut(uint256 _price, bool _isCancelDelayed)
     internal
     view
     returns (uint256)
   {
+
+      if (_isCancelDelayed) {
+        return _price * auctioneerDelayedCancelCut / 10000;
+      }
+
       return _price * auctioneerCut / 10000;
   }
 

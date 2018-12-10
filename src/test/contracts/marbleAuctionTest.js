@@ -7,6 +7,8 @@ const [rick, morty, summer, beth, jerry] = require("../utils/actors.js");
 
 const duration = 62; // seconds
 const nonExistingToken = 999;
+const cut = 300; // %3 0 - 10,000
+const delayedCancelCut = 5000;
 
 contract("MarbleAuctionTest", accounts => {
   let nftContract;
@@ -25,13 +27,18 @@ contract("MarbleAuctionTest", accounts => {
    auctionContract = await MarbleDutchAuction.deployed();
   });
 
+  it("checks auctionieer cuts", async () => {
+    assert.equal(await auctionContract.auctioneerCut(), cut);
+    assert.equal(await auctionContract.auctioneerDelayedCancelCut(), delayedCancelCut);
+  });
+
   it("returns correct count of Auctions after creation", async () => {
     // ini NFTs
-    await nftContract.mint(rick.token, rick.account, rick.uri, rick.tokenUri, Date.now(), {from: owner});
-    await nftContract.mint(beth.token, beth.account, beth.uri, beth.tokenUri, Date.now(), {from: owner});
-    await nftContract.mint(summer.token, summer.account, summer.uri, summer.tokenUri, Date.now(), {from: owner});
-    await nftContract.mint(morty.token, morty.account, morty.uri, morty.tokenUri, Date.now(), {from: owner});
-    await nftContract.mint(jerry.token, jerry.account, jerry.uri, jerry.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(rick.token, rick.account, rick.account, rick.uri, rick.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(beth.token, beth.account, beth.account, beth.uri, beth.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(summer.token, summer.account, summer.account, summer.uri, summer.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(morty.token, morty.account, morty.account, morty.uri, morty.tokenUri, Date.now(), {from: owner});
+    await nftContract.mint(jerry.token, jerry.account, jerry.account, jerry.uri, jerry.tokenUri, Date.now(), {from: owner});
 
     await auctionContract.createAuction(rick.token, 2*rick.payment, rick.payment, duration, {from: rick.account});
     await auctionContract.createAuction(beth.token, 2*beth.payment, beth.payment, duration, {from: beth.account});
@@ -81,21 +88,18 @@ contract("MarbleAuctionTest", accounts => {
   });
 
   it("bid on classic auction", async () => {
-    const events = auctionContract.AuctionSuccessful();
     let summersBalance = await web3.eth.getBalance(summer.account);
+    let auctioneerBalance = await web3.eth.getBalance(auctionContract.address);
 
     await auctionContract.bid(summer.token, { from: morty.account, value: await auctionContract.getCurrentPrice(summer.token) });
 
-    let auctioneerCut = await web3.eth.getBalance(auctionContract.address);
+    let events = await auctionContract.getPastEvents();
 
-    events.get((err, res) => {
-      assert(!err);
-
-      assert.equal(res[0].event, "AuctionSuccessful");
-      assert.equal(res[0].args.tokenId, summer.token);
-      assert(auctioneerCut > 0, "auction contract has to gain cut :)");
-      assert.equal(res[0].args.winner, morty.account);
-    });
+    assert(events.length > 0 , "there has to be at least one event!");
+    assert.equal(events[0].event, "AuctionSuccessful");
+    assert.equal(events[0].args.tokenId, summer.token);
+    assert(auctioneerBalance < await web3.eth.getBalance(auctionContract.address), "auction contract has to gain cut :)");
+    assert.equal(events[0].args.winner, morty.account);
 
     assert(summersBalance + summer.payment < await web3.eth.getBalance(summer.account), "seller has to gain his revenue!");
     assert.equal(await nftContract.ownerOf(summer.token), morty.account);

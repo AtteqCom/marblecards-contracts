@@ -6,9 +6,6 @@ module.exports = function(deployer) {
   var nftAddress;
   var candidateAddress;
 
-  deployer.deploy(MarbleNFTLib);
-  deployer.link(MarbleNFTLib, MarbleNFT);
-
   deployer.deploy(MarbleNFT)
   .then(() => MarbleNFT.deployed())
   .then(_marbleNFT => {

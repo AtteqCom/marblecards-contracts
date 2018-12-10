@@ -16,6 +16,15 @@ interface MarbleDutchAuctionInterface {
    external;
 
   /**
+  * @dev Sets new auctioneer delayed cut, in case we are not earning much during creating NFTs initial auctions!
+  * @param _cut Percent cut the auctioneer takes on each auction, must be between 0-10000. Values 0-10,000 map to 0%-100%.
+  */
+  function setAuctioneerDelayedCancelCut(
+    uint256 _cut
+  )
+   external;
+
+  /**
    * @dev Sets an addresses of ERC 721 contract owned/admined by same entity.
    * @param _nftAddress Address of ERC 721 contract
    */
