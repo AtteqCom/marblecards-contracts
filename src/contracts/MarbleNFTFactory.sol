@@ -214,5 +214,4 @@ contract MarbleNFTFactory is
     // Let's everyone to know that we burn things....! :)
     emit MarbleNFTBurned(_tokenId, owner, creator);
   }
-
 }

@@ -9,17 +9,27 @@ module.exports = function(deployer) {
   deployer.deploy(MarbleDutchAuction)
   .then(() => MarbleDutchAuction.deployed())
   .then(_marbleAuction => {
-    _marbleAuction.setAuctioneerCut(cut);
-    _marbleAuction.setAuctioneerDelayedCancelCut(delayedCancelCut);
-
-    MarbleNFTFactory.deployed().then(_factory => {
-      _marbleAuction.addAdmin(_factory.address);
-      _factory.setMarbleDutchAuctionContract(_marbleAuction.address);
-
-    });
-    MarbleNFT.deployed().then(_marbleNFT => {
-      _marbleNFT.addAdmin(_marbleAuction.address);
-      _marbleAuction.setNFTContract(_marbleNFT.address);
+    return _marbleAuction.setAuctioneerCut(cut)
+    .then(()=>{
+      return _marbleAuction.setAuctioneerDelayedCancelCut(delayedCancelCut)
+      .then(()=>{
+        return MarbleNFTFactory.deployed()
+        .then(_factory => {
+          return _marbleAuction.addAdmin(_factory.address)
+          .then(()=>{
+            return _factory.setMarbleDutchAuctionContract(_marbleAuction.address)
+            .then(()=>{
+              return MarbleNFT.deployed()
+              .then(_marbleNFT => {
+                return _marbleNFT.addAdmin(_marbleAuction.address)
+                .then(()=>{
+                   return _marbleAuction.setNFTContract(_marbleNFT.address);
+                });
+              });
+            });
+          });
+        });
+      });
     });
   });
 };

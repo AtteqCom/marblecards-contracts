@@ -4,13 +4,19 @@ const MarbleNFT = artifacts.require("./MarbleNFT.sol");
 const MarbleDutchAuction = artifacts.require("./MarbleDutchAuction.sol");
 
 contract("MarbleIntegrityTest", accounts => {
+  console.log("Integrity test - started");
   const [firstAccount, secondAccount] = accounts;
+  console.log("Accounts used:");
+  console.log(firstAccount);
+  console.log(secondAccount);
+
   let auction,
     factory,
     nft,
     candidate;
 
   before(async () => {
+    console.log("Before Test: getting contracts");
     auction = await MarbleDutchAuction.deployed();
     factory = await MarbleNFTFactory.deployed();
     nft = await MarbleNFT.deployed();

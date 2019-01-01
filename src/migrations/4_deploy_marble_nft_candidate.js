@@ -8,12 +8,15 @@ module.exports = function(deployer) {
   deployer.deploy(MarbleNFTCandidate)
   .then(() => MarbleNFTCandidate.deployed())
   .then(_marbleNFTCandidate => {
-    _marbleNFTCandidate.setMinimalPrice(candidateMinimalPrice);
-    _marbleNFTCandidate.addAdmin(MarbleNFTFactory.address);
-
-    MarbleNFTFactory.deployed()
-    .then(_marbleNFTFactory => {
-      _marbleNFTFactory.setCandidateContract(_marbleNFTCandidate.address);
+    return _marbleNFTCandidate.setMinimalPrice(candidateMinimalPrice)
+    .then(()=>{
+      _marbleNFTCandidate.addAdmin(MarbleNFTFactory.address)
+      .then(()=>{
+        return MarbleNFTFactory.deployed()
+        .then(_marbleNFTFactory => {
+          return _marbleNFTFactory.setCandidateContract(_marbleNFTCandidate.address);
+        });
+      });
     });
   });
 };

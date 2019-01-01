@@ -81,6 +81,7 @@ contract("MarbleCandidateTest", accounts => {
 
   it("withdraws candidate contract balance", async () => {
     let ownersBalance = await web3.eth.getBalance(owner);
+    assert(await web3.eth.getBalance(candidateContract.address) > 0, "Candidate contract should has money!");
     await candidateContract.withdrawBalance({from: owner});
     assert.notEqual(ownersBalance, await web3.eth.getBalance(owner));
     assert.equal(await web3.eth.getBalance(candidateContract.address),0);

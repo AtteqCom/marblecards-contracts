@@ -16,7 +16,7 @@ contract Adminable is Claimable {
    */
   function isAdmin(address adminAddress)
     public
-    constant
+    view
     returns(bool isIndeed)
   {
     if (adminAddress == owner) return true;

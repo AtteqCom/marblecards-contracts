@@ -12,8 +12,10 @@ module.exports = function(deployer) {
     MarbleNFTFactory.deployed()
     .then(_marbleNFTFactory => {
       // Deploy NFT contract
-      _marbleNFTFactory.setNFTContract(_marbleNFT.address);
-      _marbleNFT.addAdmin(_marbleNFTFactory.address);
+      return _marbleNFTFactory.setNFTContract(_marbleNFT.address)
+      .then(()=>{
+        return _marbleNFT.addAdmin(_marbleNFTFactory.address);
+      });
     });
   });
 };

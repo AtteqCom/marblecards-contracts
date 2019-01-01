@@ -1,6 +1,7 @@
 const MarbleDutchAuction = artifacts.require("./MarbleDutchAuction.sol");
 const MarbleNFT = artifacts.require("./MarbleNFT.sol");
 
+const logger = require('../utils/logger');
 const assertRevert = require('../utils/assertRevert');
 
 const [rick, morty, summer, beth, jerry] = require("../utils/actors.js");
@@ -9,6 +10,12 @@ const duration = 62; // seconds
 const nonExistingToken = 999;
 const cut = 300; // %3 0 - 10,000
 const delayedCancelCut = 5000;
+
+function delay(msec) {
+  return new Promise((resolve, _) => {
+    setTimeout(() => resolve(), msec);
+  });
+}
 
 contract("MarbleAuctionTest", accounts => {
   let nftContract;
@@ -40,10 +47,10 @@ contract("MarbleAuctionTest", accounts => {
     await nftContract.mint(morty.token, morty.account, morty.account, morty.uri, morty.tokenUri, Date.now(), {from: owner});
     await nftContract.mint(jerry.token, jerry.account, jerry.account, jerry.uri, jerry.tokenUri, Date.now(), {from: owner});
 
-    await auctionContract.createAuction(rick.token, 2*rick.payment, rick.payment, duration, {from: rick.account});
-    await auctionContract.createAuction(beth.token, 2*beth.payment, beth.payment, duration, {from: beth.account});
-    await auctionContract.createAuction(summer.token, 2*summer.payment, summer.payment, duration, {from: summer.account});
-    await auctionContract.createAuction(morty.token, 2*morty.payment, morty.payment, duration, {from: morty.account});
+    await auctionContract.createAuction(rick.token, 2*rick.payment, rick.payment, duration*10, {from: rick.account});
+    await auctionContract.createAuction(beth.token, 2*beth.payment, beth.payment, duration*10, {from: beth.account});
+    await auctionContract.createAuction(summer.token, 2*summer.payment, summer.payment, duration*10, {from: summer.account});
+    await auctionContract.createAuction(morty.token, 2*morty.payment, morty.payment, duration*10, {from: morty.account});
     await auctionContract.createAuction(jerry.token, 2*jerry.payment, jerry.payment, duration, {from: jerry.account});
 
     assert.equal(await auctionContract.totalAuctions(), 5);
@@ -144,34 +151,46 @@ contract("MarbleAuctionTest", accounts => {
   });
 
   it("check current price when duration is over", async () => {
-    console.log("Waiting for end of duration....")
-    setTimeout(async () => {
-      assert.equal(await auctionContract.getCurrentPrice(jerry.token), jerry.payment);
-    }, duration*1000);
+    console.log("Waiting for end of duration....");
+
+    delay(duration*1000);
+
+    assert.equal(await auctionContract.getCurrentPrice(jerry.token), jerry.payment);
+
   });
 
   it("cancel auction when duration is over", async () => {
-    console.log("Waiting for end of duration....")
-    setTimeout(async () => {
-      await auctionContract.cancelAuction(jerry.token, {from: jerry.account});
-      assert.equal(await nftContract.ownerOf(jerry.token), jerry.account);
-    }, duration*1000 + 5000);
+    console.log("Waiting for end of duration....");
+
+    delay(duration*1000);
+
+    await auctionContract.cancelAuction(jerry.token, {from: jerry.account});
+    assert.equal(await nftContract.ownerOf(jerry.token), jerry.account);
+
   });
 
   it("throws trying to withdraw balance without permissions", async () => {
-    setTimeout(async () => {
-        await assertRevert(candidateContract.withdrawBalance({from: jerry.account}));
-    }, duration*1000 + 5000);
+
+    delay(duration*1000);
+
+    assert(await web3.eth.getBalance(auctionContract.address) > 0, "Auction contract should has money!");
+
+    await assertRevert(auctionContract.withdrawBalance({from: jerry.account}));
+
   });
 
   it("withdraws auction contract balance", async () => {
-    setTimeout(async () => {
-      let ownersBalance = await web3.eth.getBalance(owner);
-      await candidateContract.withdrawBalance({from: owner});
 
-      assert.notEqual(ownersBalance, await web3.eth.getBalance(owner));
-      assert.equal(await web3.eth.getBalance(candidateContract.address),0);
-    }, duration*1000 + 8000);
+    delay(duration*1000);
+
+    assert(await web3.eth.getBalance(auctionContract.address) > 0, "Auction contract should has money!");
+
+    let ownersBalance = await web3.eth.getBalance(owner);
+    await auctionContract.withdrawBalance({from: owner});
+
+    assert.notEqual(ownersBalance, await web3.eth.getBalance(owner));
+    assert.equal(await web3.eth.getBalance(auctionContract.address),0);
+
   });
 
 });

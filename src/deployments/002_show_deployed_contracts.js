@@ -26,6 +26,8 @@ module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }
   candidate = await getContract("./MarbleNFTCandidate.sol");
   auction = await getContract("./MarbleDutchAuction.sol");
 
+  logger.info(`-- OWNER ----------------------------------------`);
+  logger.info(`Address: "${await nft.owner()}".`);
   logger.info(`-- CONTRACTS ------------------------------------`);
   logger.info(`NFT: "${nft.address}".`);
   logger.info(`Factory: "${factory.address}".`);
@@ -41,7 +43,7 @@ module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }
   logger.info(`-------------------------------------------------`);
 
   logger.info(`-- BALANCE --------------------------------------`);
-  logger.info(`Auction: ${await web3.eth.getBalance(auction.address)}`);
   logger.info(`Owner: ${await web3.eth.getBalance(await nft.owner())}`);
+  logger.info(`Auction: ${await web3.eth.getBalance(auction.address)}`);
   logger.info(`Candidate: ${await web3.eth.getBalance(candidate.address)}`);
 };

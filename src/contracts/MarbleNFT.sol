@@ -1,4 +1,4 @@
- pragma solidity ^0.4.24;
+pragma solidity ^0.4.24;
 
 import "@0xcert/ethereum-erc721/contracts/tokens/NFTokenMetadata.sol";
 import "@0xcert/ethereum-erc721/contracts/tokens/NFTokenEnumerable.sol";

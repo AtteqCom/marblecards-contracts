@@ -6,7 +6,18 @@ async function getCall(method) {
   return method.call();
 }
 
-const alreadyCopiedNFTs = 1;
+// const alreadyCopiedNFTs = 940;
+// const alreadyCopiedNFTs = 65;
+/*
+*  NFT to Mint:
+   { id: '1645',
+  metadataUri: 'http://ws.beta.marble.cards/marble/token/1702',
+  owner: '0x6d5DB93c6EFd4C35Ee41CdC0A8288553A0c158a9' }
+Error: nonce too low
+const alreadyCopiedNFTs = 2423;
+*
+*/
+const alreadyCopiedNFTs = 2523;
 
 module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }) => {
 
@@ -34,7 +45,6 @@ module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }
   logger.info(totalNFT);
   logger.info(`Total NFTs counted ${totalNFT}...`);
 
-  //
   for (index = alreadyCopiedNFTs; index < totalNFT; index++) {
     var nft = {id: null, metadataUri: null, owner: null};
 
