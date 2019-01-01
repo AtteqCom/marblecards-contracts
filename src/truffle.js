@@ -1,5 +1,5 @@
 const HDWalletProvider = require("truffle-hdwallet-provider"); // WEB3.one
-const HDWalletProviderPrivkey = require("truffle-hdwallet-provider-privkey");
+//const HDWalletProviderPrivkey = require("truffle-hdwallet-provider-privkey");
 
 require('dotenv').config();  // Store environment-specific variable from '.env' to process.env
 
@@ -40,10 +40,13 @@ module.exports = {
     host: 'localhost',
     post:8080
   },
-  solc: {
-    optimizer: {
-      enabled: true,
-      runs: 200
+  compilers: {
+    solc: {
+      version: "0.4.24",
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
     }
   }
 };

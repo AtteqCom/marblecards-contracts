@@ -139,7 +139,6 @@ To deploy contract over Ropsten network we have to set up account over geth node
     npx truffle test --network infuraRopstenTest ./test/contracts/marbleNFTFactoryTest.js
     ```
 
-
 #### Extra deployments scripts
 
 *Copy NFTs to newly deployed contracts* it's neccessery to provide original factory contract
