@@ -46,4 +46,5 @@ module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }
   logger.info(`Owner: ${await web3.eth.getBalance(await nft.owner())}`);
   logger.info(`Auction: ${await web3.eth.getBalance(auction.address)}`);
   logger.info(`Candidate: ${await web3.eth.getBalance(candidate.address)}`);
+
 };

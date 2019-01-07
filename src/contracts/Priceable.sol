@@ -20,7 +20,7 @@ contract Priceable is Claimable {
    * @dev modifier Checks minimal amount, what was sent to function call.
    * @param _minimalAmount - minimal amount neccessary to  continue function call
    */
-  modifier mintingPrice(uint256 _minimalAmount) {
+  modifier minimalPrice(uint256 _minimalAmount) {
     require(msg.value >= _minimalAmount, "Not enough Ether provided.");
     _;
   }

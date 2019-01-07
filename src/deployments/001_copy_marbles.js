@@ -6,18 +6,7 @@ async function getCall(method) {
   return method.call();
 }
 
-// const alreadyCopiedNFTs = 940;
-// const alreadyCopiedNFTs = 65;
-/*
-*  NFT to Mint:
-   { id: '1645',
-  metadataUri: 'http://ws.beta.marble.cards/marble/token/1702',
-  owner: '0x6d5DB93c6EFd4C35Ee41CdC0A8288553A0c158a9' }
-Error: nonce too low
-const alreadyCopiedNFTs = 2423;
-*
-*/
-const alreadyCopiedNFTs = 2523;
+const startCopyFrom = 2944;
 
 module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }) => {
 
@@ -26,11 +15,13 @@ module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }
   var oldFactoryAbi = require("../externalABI/betaFactory.abi.1.0.js");
   var oldAuctionAbi = require("../externalABI/betaAuction.abi.1.0.js");
 
+  //oringnal contract address
+  var originalContract = "0xbafa39ad3c608a426b08571b01caeb93a3d91f44";
   // current contract
   var nftContract = await MarbleNFT.deployed();
 
   //Address of the contract, obtained from Etherscan
-  var oldFactory = new web3.eth.Contract(oldFactoryAbi, "0xbafa39ad3c608a426b08571b01caeb93a3d91f44");
+  var oldFactory = new web3.eth.Contract(oldFactoryAbi, originalContract);
   logger.info(`Factory contract loaded...`);
 
   var nftAddress = await oldFactory.methods.marbleNFTContract().call();
@@ -45,7 +36,7 @@ module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }
   logger.info(totalNFT);
   logger.info(`Total NFTs counted ${totalNFT}...`);
 
-  for (index = alreadyCopiedNFTs; index < totalNFT; index++) {
+  for (index = startCopyFrom; index < totalNFT; index++) {
     var nft = {id: null, metadataUri: null, owner: null};
 
     nft.id = await oldNFT.methods.tokenByIndex(index).call();

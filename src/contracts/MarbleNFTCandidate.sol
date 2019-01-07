@@ -107,7 +107,7 @@ contract MarbleNFTCandidate is
     external
     whenNotPaused
     payable
-    mintingPrice(minimalMintingPrice)
+    minimalPrice(minimalMintingPrice)
     returns(uint256 index)
   {
     uint256 uriHash = _getUriHash(_uri);
