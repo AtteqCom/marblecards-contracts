@@ -3,9 +3,12 @@
 Contracts handling [Marble.cards](https://beta.marble.cards) collectibles and other stuff.
 
 ### Setup .env
-  Truffle.js is expecting env variables for running correctly. Place wallet password in form described below into file on path *~/src/.env*
+  Truffle.js is expecting env variables for running correctly. Change out values in *~/src/sample.env* and rename it to  *~/src/.env*
   ```
-    walletPsswd = "..."
+    WALLET_PASSWORDS = <ur psswds>
+    WALLET_MNEMONIC = <ur mnemonic>
+    INFURA_KEY = <ur infura key>
+    LOG = <true | false>
   ```
 
 ### Docker
@@ -139,7 +142,7 @@ To deploy contract over Ropsten network we have to set up account over geth node
     npx truffle test --network infuraRopstenTest ./test/contracts/marbleNFTFactoryTest.js
     ```
 
-#### Extra deployments scripts
+#### Extra utils/deployments scripts
 
 *Copy NFTs to newly deployed contracts* it's neccessery to provide original factory contract
     ```
@@ -147,7 +150,25 @@ To deploy contract over Ropsten network we have to set up account over geth node
     ```
 
 *Check deployed contracts* (over Ropsten via infura)
-
     ```
     npx truffle-deploy --network infuraRopsten ./deployments/002_show_deployed_contracts.js
+    ```
+*Show all candidates* (over Ropsten via infura)
+    ```
+    npx truffle-deploy --network infuraRopsten ./deployments/003_show_candidates.js
+    ```
+
+*Mint one NFT* (over Ropsten via infura)
+    ```
+    npx truffle-deploy --network infuraRopsten ./deployments/004_mint_one.js
+    ```
+
+*Set new last minted ID* (over Ropsten via infura)
+    ```
+    npx truffle-deploy --network infuraRopsten ./deployments/005_set_last_minted_id.js
+    ```
+
+*Temporary playground* (over Ropsten via infura)
+    ```
+    npx truffle-deploy --network infuraRopsten ./deployments/006_temp.js
     ```
