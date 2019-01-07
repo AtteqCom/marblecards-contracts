@@ -278,7 +278,7 @@ contract MarbleDutchAuction is
     uint256 endingPrice,
     uint256 duration,
     uint256 startedAt,
-    bool canBeCanceled
+    bool delayedCancel
   ) {
       Auction storage auction = tokenIdToAuction[_tokenId];
       require(_isOnAuction(auction), "NFT is not auctioned over our contract!");
