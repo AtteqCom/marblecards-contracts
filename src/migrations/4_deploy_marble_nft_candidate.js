@@ -2,7 +2,7 @@ var MarbleNFTCandidate = artifacts.require("./MarbleNFTCandidate.sol");
 var MarbleNFTFactory = artifacts.require("./MarbleNFTFactory.sol");
 
 module.exports = async function(deployer) {
-  var candidateMinimalPrice = 20000000000; // 20 gwei
+  var candidateMinimalPrice = 10000000000000000; // 0.01 eth
 
   // Deploy candidate contract
   await deployer.deploy(MarbleNFTCandidate);
