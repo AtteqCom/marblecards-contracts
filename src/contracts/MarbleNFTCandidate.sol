@@ -56,7 +56,7 @@ contract MarbleNFTCandidate is
   function _getUriHash(string _uri)
     internal
     pure
-    returns(uint256 hash)
+    returns(uint256 hash_) // `hash` changed to `hash_` - according to review
   {
     return uint256(keccak256(abi.encodePacked(_uri)));
   }
@@ -136,6 +136,8 @@ contract MarbleNFTCandidate is
     uint256 keyToMove = uriHashIndex[uriHashIndex.length-1];
     uriHashIndex[rowToDelete] = keyToMove;
     uriHashToCandidates[keyToMove].index = rowToDelete;
+
+    delete uriHashToCandidates[uriHash];
     uriHashIndex.length--;
   }
 

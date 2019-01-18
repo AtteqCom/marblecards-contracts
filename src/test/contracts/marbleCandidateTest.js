@@ -1,37 +1,122 @@
 const MarbleNFTCandidate = artifacts.require("./MarbleNFTCandidate.sol");
 
+const logger = require('../utils/logger');
 const assertRevert = require('../utils/assertRevert');
 const [rick, morty, summer, beth, jerry] = require("../utils/actors.js");
+const config = require('../../config');
 
-const defaultMinimalPrice = 20000000000; // 20 gwei
-const newMinimalPrice = 30000000000; // 30 gwei
+
+const defaultMinimalPrice = config.CANDIDATE_MINIMAL_PRICE;
+const newHigherMinimalPrice = parseInt(config.CANDIDATE_MINIMAL_PRICE) + 3;
 
 contract("MarbleCandidateTest", accounts => {
   let candidateContract;
 
-  console.log(accounts);
+  logger.log(accounts);
 
   const owner = accounts[0];
 
-  summer.account = accounts[1];
-  beth.account = accounts[2];
-  jerry.account = accounts[3];
-  rick.account = accounts[4];
-  morty.account = accounts[5];
+  rick.account = accounts[1];
+  morty.account = accounts[2];
+  summer.account = accounts[3];
+  beth.account = accounts[4];
+  jerry.account = accounts[5];
 
   before(async () => {
     candidateContract = await MarbleNFTCandidate.deployed();
   });
 
   it("returns correct count of NFT candidates after creation", async () => {
+    logger.log(`Count before - ${await candidateContract.getCandidatesCount()}`);
+    logger.log(`Minimal price before - ${await candidateContract.minimalMintingPrice()}`);
     await candidateContract.createCandidate(rick.uri, {from: rick.account, value: rick.payment});
-    console.log("Creates Ricks candidate...");
+    logger.log(`Creates Ricks candidate....WEI:${rick.payment}`);
     await candidateContract.createCandidate(morty.uri, {from: morty.account, value: morty.payment});
-    console.log("Creates Mortys candidate...");
+    logger.log(`Creates Mortys candidate...WEI:${morty.payment}`);
     let count = await candidateContract.getCandidatesCount();
-    console.log(count + " ----- -");
+    logger.log(`Count after - ${await candidateContract.getCandidatesCount()}`);
 
     assert.equal(count, 2);
+  });
+
+  it("Test candidates", async() =>{
+    var count_before = await candidateContract.getCandidatesCount();
+        logger.log("count_before:" + count_before);
+
+        await candidateContract.createCandidate("url1", {from: morty.account, value: morty.payment});
+        await candidateContract.createCandidate("url2", {from: morty.account, value: morty.payment});
+        await candidateContract.createCandidate("url3", {from: morty.account, value: morty.payment});
+
+        var count_after = await candidateContract.getCandidatesCount();
+        logger.log("count_after:" + count_after);
+
+        var hashForUrl1 = await candidateContract.getCandidate("url1");
+        var hashForUrl2 = await candidateContract.getCandidate("url2");
+        var hashForUrl3 = await candidateContract.getCandidate("url3");
+        var url1_index_before = hashForUrl1[0]; //index
+        var url1_uri_before = hashForUrl1[3]; //uri
+        var url2_index_before = hashForUrl2[0]; //index
+        var url2_uri_before = hashForUrl2[3]; //uri
+        var url3_index_before = hashForUrl3[0]; //index
+        var url3_uri_before = hashForUrl3[3]; //uri
+
+
+        logger.log("url1_index_before:" + url1_index_before);
+        logger.log("url1_uri_before:" + url1_uri_before);
+        logger.log("url2_index_before:" + url2_index_before);
+        logger.log("url2_uri_before:" + url2_uri_before);
+        logger.log("url3_index_before:" + url3_index_before);
+        logger.log("url3_uri_before:" + url3_uri_before);
+
+        logger.log(" ");
+        logger.log("remove url1");
+        logger.log(" ");
+        var wait = await candidateContract.getCandidatesCount();
+        logger.log(" #" + wait);
+        await candidateContract.removeCandidate("url1", {from: owner});
+
+        logger.log(" wait ");
+        wait = await candidateContract.getCandidatesCount();
+        logger.log(" #" + wait);
+
+        var hashForUrl1_after = await candidateContract.getCandidate("url1");
+        var hashForUrl2_after = await candidateContract.getCandidate("url2");
+        var hashForUrl3_after = await candidateContract.getCandidate("url3");
+        var url1_index_after = hashForUrl1_after[0]; //index
+        var url1_uri_after = hashForUrl1_after[3]; //uri
+        var url2_index_after = hashForUrl2_after[0]; //index
+        var url2_uri_after= hashForUrl2_after[3]; //uri
+        var url3_index_after = hashForUrl3_after[0]; //index
+        var url3_uri_after = hashForUrl3_after[3]; //uri
+
+        logger.log("url1_index_after:" + url1_index_after);
+        logger.log("url1_uri_after:" + url1_uri_after);
+        logger.log("url2_index_after:" + url2_index_after);
+        logger.log("url2_uri_after:" + url2_uri_after);
+        logger.log("url3_index_after:" + url3_index_after);
+        logger.log("url3_uri_after:" + url3_uri_after);
+
+        logger.log(" ");
+        logger.log("add url4");
+        logger.log(" ");
+        await candidateContract.createCandidate("url4", {from: morty.account, value: morty.payment});
+
+        logger.log(" wait ");
+        wait = await candidateContract.getCandidatesCount();
+        logger.log(" #" + wait);
+
+        var hashForUrl4 = await candidateContract.getCandidate("url4");
+        var url4_index_new = hashForUrl4[0]; //index
+        var url4_uri_new = hashForUrl4[3]; //uri
+
+        logger.log("url1_index_after:" + url1_index_after);
+        logger.log("url1_uri_after:" + url1_uri_after);
+        logger.log("url2_index_after:" + url2_index_after);
+        logger.log("url2_uri_after:" + url2_uri_after);
+        logger.log("url3_index_after:" + url3_index_after);
+        logger.log("url3_uri_after:" + url3_uri_after);
+        logger.log("url4_index_new:" + url4_index_new);
+        logger.log("url4_uri_new:" + url4_uri_new);
   });
 
   it("throws trying to create candidate with same URI", async () => {
@@ -43,11 +128,16 @@ contract("MarbleCandidateTest", accounts => {
   });
 
   it("sets new minimal price", async () => {
-    await candidateContract.setMinimalPrice(newMinimalPrice, {from: owner});
-    assert.equal(await candidateContract.minimalMintingPrice(), newMinimalPrice);
+    logger.log(`Minimal price before - ${await candidateContract.minimalMintingPrice()}`);
+    await candidateContract.setMinimalPrice(newHigherMinimalPrice + "", {from: owner});
+    var minimalPrice = await candidateContract.minimalMintingPrice();
+    logger.log(`Minimal price after  - ${minimalPrice}`);
+    assert.equal(minimalPrice, newHigherMinimalPrice);
   });
 
   it("throws trying to create underprice candidate", async () => {
+    logger.log(`Minimal price before - ${await candidateContract.minimalMintingPrice()}`);
+    logger.log(`Ricks payment        - ${rick.payment}`);
     await assertRevert(candidateContract.createCandidate("under.price.uri", {from: rick.account, value: rick.payment}));
   });
 
@@ -71,6 +161,7 @@ contract("MarbleCandidateTest", accounts => {
 
   it("removes candidate", async () => {
     var count = await candidateContract.getCandidatesCount();
+    logger.log();
     await candidateContract.removeCandidate(morty.uri, {from: owner});
     assert.equal(await candidateContract.getCandidatesCount(), count - 1);
   });
@@ -79,16 +170,16 @@ contract("MarbleCandidateTest", accounts => {
     await assertRevert(candidateContract.createCandidate(rick.uri, {from: beth.account}));
   });
 
+  it("throws trying to withdraw balance without permissions", async () => {
+    await assertRevert(candidateContract.withdrawBalance({from: jerry.account}));
+  });
+
   it("withdraws candidate contract balance", async () => {
     let ownersBalance = await web3.eth.getBalance(owner);
     assert(await web3.eth.getBalance(candidateContract.address) > 0, "Candidate contract should has money!");
     await candidateContract.withdrawBalance({from: owner});
     assert.notEqual(ownersBalance, await web3.eth.getBalance(owner));
     assert.equal(await web3.eth.getBalance(candidateContract.address),0);
-  });
-
-  it("throws trying to withdraw balance without permissions", async () => {
-    await assertRevert(candidateContract.withdrawBalance({from: jerry.account}));
   });
 
 });

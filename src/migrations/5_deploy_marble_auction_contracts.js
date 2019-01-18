@@ -2,9 +2,11 @@ var MarbleDutchAuction = artifacts.require("./MarbleDutchAuction.sol");
 var MarbleNFTFactory = artifacts.require("./MarbleNFTFactory.sol");
 var MarbleNFT = artifacts.require("./MarbleNFT.sol");
 
+const config = require('../config');
+
 module.exports = async function(deployer) {
-  var cut = 300; // %3 0 - 10,000
-  var delayedCancelCut = 7000; // %70
+  var cut = config.AUCTIONEER_CUT; // %3 0 - 10,000
+  var delayedCancelCut = config.AUCTIONEER_MINTING_CUT; // %70
 
   await deployer.deploy(MarbleDutchAuction);
 
