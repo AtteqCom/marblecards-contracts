@@ -95,7 +95,7 @@ contract MarbleNFTFactory is
   function setLastMintedNFTId(uint256 _lastMintedNFTId)
      external
      onlyOwner
-     whenNotPaused
+     whenPaused
   {
       lastMintedNFTId = _lastMintedNFTId;
   }
