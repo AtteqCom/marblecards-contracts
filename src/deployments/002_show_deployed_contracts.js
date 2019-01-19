@@ -47,4 +47,8 @@ module.exports = async ({ accounts, artifacts, deployer, logger, network, web3 }
   logger.info(`Auction: ${await web3.eth.getBalance(auction.address)}`);
   logger.info(`Candidate: ${await web3.eth.getBalance(candidate.address)}`);
 
+  logger.info(`-- PRICES --------------------------------------`);
+  logger.info(`Minimal minting price: ${await candidate.minimalMintingPrice()}`);
+  logger.info(`Auction Cut: ${await auction.auctioneerCut()}`);
+  logger.info(`Minting Auction Cut: ${await auction.auctioneerDelayedCancelCut()}`);
 };

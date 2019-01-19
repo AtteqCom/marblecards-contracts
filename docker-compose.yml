@@ -20,7 +20,7 @@ ganache:
   #command: ganache -p 7545 -h 0.0.0.0 --noVMErrorsOnRPCResponse --blockTime 15
   command: ganache -p 7545 -h 0.0.0.0 --blockTime 5
   ports:
-    - "8545:7545"
+    - "7545:7545"
   environment:
     SET_CONTAINER_TIMEZONE: 'True'
     CONTAINER_TIMEZONE: Europe/Prague

@@ -3,13 +3,14 @@ const MarbleNFT = artifacts.require("./MarbleNFT.sol");
 
 const logger = require('../utils/logger');
 const assertRevert = require('../utils/assertRevert');
+const config = require('../../config');
 
 const [rick, morty, summer, beth, jerry] = require("../utils/actors.js");
 
 const duration = 62; // seconds
 const nonExistingToken = 999;
-const cut = 300; // %3 0 - 10,000
-const delayedCancelCut = 5000;
+const cut = config.AUCTIONEER_CUT;
+const delayedCancelCut = config.AUCTIONEER_MINTING_CUT;
 
 function delay(msec) {
   return new Promise((resolve, _) => {
@@ -47,25 +48,25 @@ contract("MarbleAuctionTest", accounts => {
     await nftContract.mint(morty.token, morty.account, morty.account, morty.uri, morty.tokenUri, Date.now(), {from: owner});
     await nftContract.mint(jerry.token, jerry.account, jerry.account, jerry.uri, jerry.tokenUri, Date.now(), {from: owner});
 
-    await auctionContract.createAuction(rick.token, 2*rick.payment, rick.payment, duration*10, {from: rick.account});
-    await auctionContract.createAuction(beth.token, 2*beth.payment, beth.payment, duration*10, {from: beth.account});
-    await auctionContract.createAuction(summer.token, 2*summer.payment, summer.payment, duration*10, {from: summer.account});
-    await auctionContract.createAuction(morty.token, 2*morty.payment, morty.payment, duration*10, {from: morty.account});
-    await auctionContract.createAuction(jerry.token, 2*jerry.payment, jerry.payment, duration, {from: jerry.account});
+    await auctionContract.createAuction(rick.token, "" + 2*rick.payment, "" + rick.payment, duration*10, {from: rick.account});
+    await auctionContract.createAuction(beth.token, "" + 2*beth.payment, "" + beth.payment, duration*10, {from: beth.account});
+    await auctionContract.createAuction(summer.token, "" + 2*summer.payment, "" + summer.payment, duration*10, {from: summer.account});
+    await auctionContract.createAuction(morty.token, "" + 2*morty.payment, "" + morty.payment, duration*10, {from: morty.account});
+    await auctionContract.createAuction(jerry.token, "" + 2*jerry.payment, "" + jerry.payment, duration, {from: jerry.account});
 
     assert.equal(await auctionContract.totalAuctions(), 5);
   });
 
   it("throws trying to create auction with not owned NFT", async () => {
-    await assertRevert(auctionContract.createAuction(beth.token, 2*rick.payment, rick.payment, duration, {from: rick.account}));
+    await assertRevert(auctionContract.createAuction(beth.token, "" + 2*rick.payment, "" + rick.payment, duration, {from: rick.account}));
   });
 
   it("throws trying to create auction with not existing NFT", async () => {
-    await assertRevert(auctionContract.createAuction(nonExistingToken, 2*rick.payment, rick.payment, duration, {from: rick.account}));
+    await assertRevert(auctionContract.createAuction(nonExistingToken, "" + 2*rick.payment, "" + rick.payment, duration, {from: rick.account}));
   });
 
   it("throws trying to create auction with minimal price higher than starting price", async () => {
-    await assertRevert(auctionContract.createAuction(jerry.token, jerry.payment, 2*jerry.payment, duration, {from: jerry.account}));
+    await assertRevert(auctionContract.createAuction(jerry.token, "" + jerry.payment, "" + 2*jerry.payment, duration, {from: jerry.account}));
   });
 
   it("throws trying to cancel not owned auction", async () => {

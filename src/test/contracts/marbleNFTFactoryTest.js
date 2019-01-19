@@ -17,6 +17,7 @@ contract("MarbleNFTFactoryTest", accounts => {
 
   const owner = accounts[0];
 
+
   summer.account = accounts[1];
   beth.account = accounts[2];
   jerry.account = accounts[3];
@@ -35,28 +36,37 @@ contract("MarbleNFTFactoryTest", accounts => {
     await candidateContract.createCandidate(summer.uri, {from: summer.account, value: summer.payment});
   });
 
-  it("mints Marble NFT and place it to Minting auction", async() => {
+  it("Set Beth as Admin", async() => {
+    console.log(`Beth account ${beth.account}`);
+
+    await factoryContract.addAdmin(beth.account, {from: owner});
+    assert(await factoryContract.isAdmin(beth.account));
+  });
+
+  it("mints Marble NFT and place it to Minting auction by Admin", async() => {
+    console.log(beth.account);
+
     await factoryContract.mint(
       rick.uri,
       rick.tokenUri,
       rick.uri,
-      rick.payment*2,
-      rick.payment,
+      rick.payment*2 + "",
+      rick.payment + "",
       duration,
-      {from: owner}
+      {from: beth.account}
     );
 
     assert.equal(await nftContract.tokenBySourceUri(rick.uri), rick.token);
     assert(await auctionContract.isOnAuction(rick.token));
   });
 
-  it("mints Marble NFT and bid on Minting auction", async() => {
+  it("mints Marble NFT by Owner and bid on Minting auction by Morty ", async() => {
     await factoryContract.mint(
       morty.uri,
       morty.tokenUri,
       morty.uri,
-      morty.payment*2,
-      morty.payment,
+      morty.payment*2 + "",
+      morty.payment + "",
       duration,
       {from: owner}
     );
@@ -75,8 +85,8 @@ contract("MarbleNFTFactoryTest", accounts => {
       summer.uri,
       summer.tokenUri,
       summer.uri,
-      summer.payment*2,
-      summer.payment,
+      summer.payment*2 + "",
+      summer.payment + "",
       duration,
       {from: jerry.account}));
   });
@@ -90,8 +100,8 @@ contract("MarbleNFTFactoryTest", accounts => {
       rick.uri,
       summer.tokenUri,
       summer.uri,
-      summer.payment*2,
-      summer.payment,
+      summer.payment*2 + "",
+      summer.payment + "",
       duration,
       {from: owner}));
   });
@@ -101,8 +111,8 @@ contract("MarbleNFTFactoryTest", accounts => {
       summer.uri,
       summer.tokenUri,
       nonExistingURI,
-      summer.payment*2,
-      summer.payment,
+      summer.payment*2 + "",
+      summer.payment + "",
       duration,
       {from: owner}));
   });
@@ -112,8 +122,8 @@ contract("MarbleNFTFactoryTest", accounts => {
       summer.uri,
       summer.tokenUri,
       summer.uri,
-      summer.payment*2,
-      summer.payment-1000,
+      summer.payment*2 + "",
+      summer.payment-1000 + "",
       duration,
       {from: jerry.account}));
   });
@@ -134,5 +144,40 @@ contract("MarbleNFTFactoryTest", accounts => {
     await factoryContract.burn(morty.token);
 
     assert.equal(await nftContract.tokenBySourceUri(morty.uri), 0);
+  });
+
+  it("Set new last ID", async () => {
+    var newId = 2000;
+    var idBefore = await factoryContract.lastMintedNFTId();
+    console.log("ID - before - " + idBefore);
+
+    await factoryContract.pause({from: owner});
+
+
+    await factoryContract.setLastMintedNFTId(newId, {from: owner});
+
+    await factoryContract.unpause({from: owner});
+
+    var idAfter = await factoryContract.lastMintedNFTId();
+    console.log("ID - after - " + idAfter);
+
+    assert.equal(newId, idAfter);
+  });
+
+  it("mints Marble NFT after pause with new ID", async() => {
+    await factoryContract.mint(
+      summer.uri,
+      summer.tokenUri,
+      summer.uri,
+      summer.payment*2 + "",
+      summer.payment + "",
+      duration,
+      {from: beth.account}
+    );
+
+    var token = await nftContract.tokenBySourceUri(summer.uri);
+    console.log(`New Token ${token}`);
+    assert.equal(token, 2001);
+    assert(await auctionContract.isOnAuction(token));
   });
 });

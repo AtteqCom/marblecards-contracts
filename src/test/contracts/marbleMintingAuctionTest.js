@@ -39,9 +39,9 @@ contract("MarbleMintingAuctionTest", accounts => {
 
     logger.log("Creating test Auctions..");
     // summers auction will be on auction for llonger time
-    await auctionContract.createMintingAuction(summer.token, 2*summer.payment, summer.payment, duration*10, summer.account, {from: owner});
+    await auctionContract.createMintingAuction(summer.token, "" + 2*summer.payment, "" + summer.payment, duration*10, summer.account, {from: owner});
     // beth will have auction with short duration
-    await auctionContract.createMintingAuction(beth.token, 2*beth.payment, beth.payment, duration, beth.account, {from: owner});
+    await auctionContract.createMintingAuction(beth.token, "" + 2*beth.payment, "" + beth.payment, duration, beth.account, {from: owner});
 
     assert.equal(await auctionContract.totalAuctions(), 2);
   });
@@ -80,6 +80,8 @@ contract("MarbleMintingAuctionTest", accounts => {
     let auctioneerBalance = await web3.eth.getBalance(auctionContract.address);
     let summersBalance = await web3.eth.getBalance(summer.account);
 
+    logger.log(`Summer balance ${summersBalance}`);
+
     assert(await auctionContract.isOnAuction(summer.token), "Token should be still on auction");
 
     var auction = await auctionContract.getAuction(summer.token);
@@ -91,7 +93,9 @@ contract("MarbleMintingAuctionTest", accounts => {
 
     assert(Date.now() < auctionEnds, "Bid has to come before the end of auction!");
 
-    await auctionContract.bid(summer.token, { from: jerry.account, value: await auctionContract.getCurrentPrice(summer.token) });
+    let currentPrice = await auctionContract.getCurrentPrice(summer.token);
+    logger.log(`Current price ${currentPrice}`);
+    await auctionContract.bid(summer.token, { from: jerry.account, value: currentPrice });
     let events = await auctionContract.getPastEvents();
 
     assert(events.length > 0 , "there has to be at least one event!");
@@ -103,6 +107,7 @@ contract("MarbleMintingAuctionTest", accounts => {
 
     let summersBalanceNow = (await web3.eth.getBalance(summer.account));
 
+    logger.log(`Summer balance now ${summersBalanceNow}`);
     assert(summersBalance < summersBalanceNow, "seller has to gain his Minting revenue!");
     assert.equal(await nftContract.ownerOf(summer.token), jerry.account);
   });

@@ -22,6 +22,12 @@ module.exports = {
       gasPrice: 1,
       gas: 6012388
     },
+    mainnet: {
+      network_id: 1,
+      new HDWalletProvider(process.env.WALLET_PASSWORD, "https://ropsten.infura.io/v3/" + process.env.INFRURA_KEY_MAINET),
+      gasPrice: 7,
+      gas: 6012388
+    },
     // If you're using an HDWalletProvider, it must be Web3 1.0 enabled or your migration will hang.
     infuraRopsten: {
       provider: () =>

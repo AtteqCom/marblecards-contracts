@@ -108,6 +108,41 @@ To deploy contract over Ropsten network we have to set up account over geth node
     npx truffle migrate --network infuraRopsten
     ```
 
+    #### Migration - Ropsten (via Infura)
+
+    To deploy contract over Ropsten network we have to set up account over geth node unlock it and call truffle
+
+    1. Create *.env* add *WALLET_MNEMONIC* and *INFURA_KEY*
+
+        ```
+        WALLET_MNEMONIC = ...
+        INFURA_KEY = ...
+        ```
+
+    2. Run docker containers needed to deploy contracts
+        ```
+        docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml build
+        docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml up -d
+        docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml exec builder bash
+        ```
+
+    3. Migrate script to Ropsten network via infrura
+        ```
+        # npm run clean
+
+        npx truffle migrate --network infuraRopsten
+        ```
+4. Migrate script to Ropsten network via infrura
+
+  1-2. Steps same as above
+
+  3. Migrate script to Mainnet network via infrura
+      ```
+      # npm run clean
+
+      npx truffle migrate --network mainnet
+      ```
+
 #### Test - Ganache
 
 1. Enter builder container.
@@ -143,6 +178,7 @@ To deploy contract over Ropsten network we have to set up account over geth node
     ```
 
 #### Extra utils/deployments scripts
+
 
 *Copy NFTs to newly deployed contracts* it's neccessery to provide original factory contract
     ```
