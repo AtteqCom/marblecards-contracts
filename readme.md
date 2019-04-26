@@ -1,6 +1,6 @@
 # MarbleCards - Contracts
 
-Contracts handling [Marble.cards](https://beta.marble.cards) collectibles and other stuff.
+Contracts handling [Marble.cards](https://marble.cards) collectibles and other stuff.
 
 ### Setup .env
   Truffle.js is expecting env variables for running correctly. Change out values in *~/src/sample.env* and rename it to  *~/src/.env*
