@@ -8,25 +8,17 @@ module.exports = {
   // to customize your Truffle configuration!
   networks: {
     development: {
-      host: "ganache",
-      port: 7545,
+      host: "localhost",
+      port: 8545,
       network_id: "*",
       //gasPrice: 1,
       //gas: 9000000,
     },
-    ropsten: {
-      network_id: 3,
-      host: "geth",
-      port: 8545,
-      from: "0x3C47f1DeE211caA7616102042EF9BE18Da858574",
-      gasPrice: 1,
-      gas: 6012388
-    },
-    mainnet: {
-      network_id: 1,
-      new HDWalletProvider(process.env.WALLET_PASSWORD, "https://ropsten.infura.io/v3/" + process.env.INFRURA_KEY_MAINET),
-      gasPrice: 7,
-      gas: 6012388
+    mainnet: { // must be a web3-1.0.0, otherwise truffle commands may hang in CI
+      provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://mainnet.infura.io/v3/" + process.env.INFRURA_KEY_MAINNET),
+      network_id: '1',
+      gasPrice: 50000000000,
+      gas: 901238
     },
     // If you're using an HDWalletProvider, it must be Web3 1.0 enabled or your migration will hang.
     infuraRopsten: {

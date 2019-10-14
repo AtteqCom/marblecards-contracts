@@ -10,7 +10,7 @@ interface MarbleNFTCandidateInterface {
 
   /**
    * @dev Sets minimal price for creating Marble NFT Candidate
-   * @param _minimalMintingPrice Minimal price asked from creator of Marble NFT candidate
+   * @param _minimalMintingPrice Minimal price asked from creator of Marble NFT candidate (weis)
    */
   function setMinimalPrice(uint256 _minimalMintingPrice)
     external;
