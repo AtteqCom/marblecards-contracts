@@ -1,6 +1,6 @@
 data
 0xcerts
 docker/geth/delete.me
-src/.env
+.env
 docker/geth/ignore.me.js
 build/contracts/
