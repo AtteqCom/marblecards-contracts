@@ -9,11 +9,16 @@ builder:
     SET_CONTAINER_TIMEZONE: 'True'
     CONTAINER_TIMEZONE: Europe/Prague
   volumes:
-    - "./build:/marblegame/build"
-    - "./src/contracts:/marblegame/contracts"
-    - "./src/migrations:/marblegame/migrations"
-    - "./src/test:/marblegame/test"
-    - "./src/deployments:/marblegame/deployments"
+    - "./build/core:/marblegame/core/build"
+    - "./build/metatransactions:/marblegame/metatransactions/build"
+    - "./src/core/contracts:/marblegame/core/contracts"
+    - "./src/core/migrations:/marblegame/core/migrations"
+    - "./src/core/test:/marblegame/core/test"
+    - "./src/core/deployments:/marblegame/core/deployments"
+    - "./src/metatransactions/contracts:/marblegame/metatransactions/contracts"
+    - "./src/metatransactions/migrations:/marblegame/metatransactions/migrations"
+    - "./src/metatransactions/test:/marblegame/metatransactions/test"
+    - "./src/metatransactions/deployments:/marblegame/metatransactions/deployments"
 
 ganache:
   image: trufflesuite/ganache-cli:latest

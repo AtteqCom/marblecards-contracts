@@ -25,6 +25,7 @@
     "truffle-hdwallet-provider": "^1.0.0-web3one.5",
     "fast-csv": "2.4.1",
     "@0xcert/ethereum-erc721": "1.10.0",
-    "@0xcert/ethereum-utils": "1.1.0"
+    "@0xcert/ethereum-utils": "1.1.0",
+    "@opengsn/gsn": "^2.0.0"
   }
 }

@@ -3,7 +3,7 @@
 Contracts handling [Marble.cards](https://marble.cards) collectibles and other stuff.
 
 ### Setup .env
-  Truffle.js is expecting env variables for running correctly. Change out values in *~/src/sample.env* and rename it to  *~/src/.env*
+  Truffle.js is expecting env variables for running correctly. Change out values in *~/src/sample.env* and rename it to  *~/src/.env*.
   ```
     WALLET_PASSWORDS = <ur psswds>
     WALLET_MNEMONIC = <ur mnemonic>
@@ -29,6 +29,9 @@ There is no exposed ports. All we need is located over linked volumes.
 
 3. Use truffle to build it. Result will be in *~/build/contracts* folder.
     ```
+    cd core
+    npx truffle compile
+    cd ../metatransactions
     npx truffle compile
     ```
 
@@ -108,31 +111,7 @@ To deploy contract over Ropsten network we have to set up account over geth node
     npx truffle migrate --network infuraRopsten
     ```
 
-    #### Migration - Ropsten (via Infura)
-
-    To deploy contract over Ropsten network we have to set up account over geth node unlock it and call truffle
-
-    1. Create *.env* add *WALLET_MNEMONIC* and *INFURA_KEY*
-
-        ```
-        WALLET_MNEMONIC = ...
-        INFURA_KEY = ...
-        ```
-
-    2. Run docker containers needed to deploy contracts
-        ```
-        docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml build
-        docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml up -d
-        docker-compose -f docker-compose.yml -f docker-compose.ropsten.yml exec builder bash
-        ```
-
-    3. Migrate script to Ropsten network via infrura
-        ```
-        # npm run clean
-
-        npx truffle migrate --network infuraRopsten
-        ```
-4. Migrate script to Ropsten network via infrura
+4. Migrate script to Mainnet network via infrura
 
   1-2. Steps same as above
 
@@ -142,6 +121,28 @@ To deploy contract over Ropsten network we have to set up account over geth node
 
       npx truffle migrate --network mainnet
       ```
+
+### Migration - Matic
+1. Create *.env* and add *WALLET_MNEMONIC* 
+
+    ```
+    WALLET_MNEMONIC = ...
+    ```
+
+2. Start docker containers 
+    ```
+    docker-compose up
+    ```
+
+3. Deploy mumbai contracts
+    ```
+    docker-compose exec builder bash
+    cd ./core
+    npx truffle migrate --network mumbai
+    cd ../metatransations
+    npx truffle migrate --network mumbai
+
+HINT: to deploy to Matic mainnet, use network mainnet instead of mumbai.
 
 #### Test - Ganache
 
