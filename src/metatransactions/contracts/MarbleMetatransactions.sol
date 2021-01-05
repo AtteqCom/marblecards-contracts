@@ -1,23 +1,27 @@
-pragma solidity ^0.6.10;
+pragma solidity ^0.5.13;
 
-import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
-import "@opengsn/gsn/contracts/interfaces/IKnowForwarderAddress.sol";
+// import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
+import "./EIP712MetaTransaction.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 /**
  * @title MarbleMetatransactions
  * @dev Contracts allows metatransactions over marble contracts.
  */
-contract MarbleMetatransactions is BaseRelayRecipient, IKnowForwarderAddress {
+contract MarbleMetatransactions is EIP712MetaTransaction {
 
-  ERC721 public nftContract;
+  ERC721 public marbleNftContract;
 
-  constructor(address _forwarder) public {
-		trustedForwarder = _forwarder;
+  constructor(ERC721 _marbleNftContract) public EIP712MetaTransaction("MarbleCards test", "1") {
+		marbleNftContract = _marbleNftContract;
 	}
 
   function transferNft(address toAddress, uint tokenId) external {
-    address issuer = _msgSender();
-    nftContract.transferFrom(issuer, toAddress, tokenId);
+    address issuer = msgSender();
+    marbleNftContract.transferFrom(issuer, toAddress, tokenId);
   }
   
 }
+
+
+// 0x16E8a6081dC2044fa80E392be6830f754886c39F

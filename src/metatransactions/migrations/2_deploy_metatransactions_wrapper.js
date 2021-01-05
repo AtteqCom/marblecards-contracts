@@ -1,6 +1,6 @@
-var MarbleNFTFactory = artifacts.require("./MarbleNFTFactory.sol");
+const MarbleMetatransactions = artifacts.require("./MarbleMetatransactions.sol");
 
 module.exports = function(deployer) {
-  // Deploy factory contract and set sub contracts references
-  deployer.deploy(MarbleNFTFactory, 0);
+  deployer.deploy(MarbleMetatransactions, "0xa9f618C5D67Ae221EfF918538a0F811E4fFdDB69");
+  // deployer.deploy(MarbleMetatransactions);
 };

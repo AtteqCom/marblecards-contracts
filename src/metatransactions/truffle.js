@@ -26,7 +26,7 @@ module.exports = {
     },
     mumbai: { // must be a web3-1.0.0, otherwise truffle commands may hang in CI
       provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://rpc-mumbai.matic.today"),
-      network_id: '80001',
+      network_id: 80001,
       confirmations: 2,
       timeoutBlocks: 200,
       skipDryRun: true
@@ -47,10 +47,13 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: "0.4.24",
+      version: "0.5.13",
       optimizer: {
         enabled: true,
         runs: 200
+      },
+      settings: {
+        evmVersion: "istanbul"
       }
     }
   }
