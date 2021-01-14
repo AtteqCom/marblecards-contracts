@@ -14,20 +14,24 @@ contract EIP712Base {
 
     bytes32 internal domainSeperator;
 
-    constructor(string memory name, string memory version) public {
+    uint internal transactionsFromChainId;
+
+    /**
+     * @param _transactionsFromChainId only transactions from this chain will be supported.
+     */
+    constructor(string memory name, string memory version, uint _transactionsFromChainId) public {
+        transactionsFromChainId = _transactionsFromChainId;
         domainSeperator = keccak256(abi.encode(
             EIP712_DOMAIN_TYPEHASH,
             keccak256(bytes(name)),
             keccak256(bytes(version)),
-            getChainID(),
+            transactionsFromChainId,
             address(this)
         ));
     }
 
-    function getChainID() internal pure returns (uint256 id) {
-        assembly {
-            id := chainid()
-        }
+    function getChainID() internal view returns (uint256 id) {
+        return transactionsFromChainId;
     }
 
     function getDomainSeperator() private view returns(bytes32) {
