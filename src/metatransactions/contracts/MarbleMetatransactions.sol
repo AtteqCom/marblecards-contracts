@@ -2,6 +2,7 @@ pragma solidity ^0.5.13;
 
 // import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 import "./EIP712MetaTransaction.sol";
+
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 /**
@@ -10,20 +11,37 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
  */
 contract MarbleMetatransactions is EIP712MetaTransaction {
 
-  ERC721 public marbleNftContract;
+  address public marbleNFTFactoryContract;
+  address public marbleNFTContract;
 
   /**
    * @param transactionsFromChainId only transactions from this chain will be supported.
    */
-  // TODO: change marble nft contract to marble nft factory contract
-  constructor(ERC721 _marbleNftContract, uint transactionsFromChainId) public EIP712MetaTransaction("MarbleCards test", "1", transactionsFromChainId) {
-		marbleNftContract = _marbleNftContract;
+  constructor(address _marbleNFTFactoryContract, address _marbleNFTContract, uint transactionsFromChainId) public EIP712MetaTransaction("MarbleCards test", "1", transactionsFromChainId) {
+		marbleNFTFactoryContract = _marbleNFTFactoryContract;
+    marbleNFTContract = _marbleNFTContract;
+    // (bool success, bytes memory returnData) = marbleNFTFactoryContract.call(abi.encodeWithSignature("marbleNFTContract"));
+    // marbleNFTContract = bytesToAddress(returnData);
 	}
 
-  function transferNft(address toAddress, uint tokenId) external {
+  function transferNft(address toAddress, uint256 tokenId) external {
     address issuer = msgSender();
-    marbleNftContract.transferFrom(issuer, toAddress, tokenId);
+    
+    (bool success, bytes memory returnData) = marbleNFTContract.call(abi.encodeWithSignature("forceApproval(uint256,address)", tokenId, address(this)));
+    require(success, "Could not get approval for the transfer");
+    (success, returnData) = marbleNFTContract.call(abi.encodeWithSignature("transferFrom(address,address,uint256)", issuer, toAddress, tokenId));
+    require(success, "Transfer execution reverted");
+    // marbleNftContract.forceApproval(tokenId, address(this));
+    // marbleNftContract.transferFrom(issuer, toAddress, tokenId);
   }
+
+  function bytesToAddress(bytes memory bys) private pure returns (address addr) {
+    assembly {
+      addr := mload(add(bys,20))
+    } 
+  }
+
+  /** SOME TEST FUNCTIONS */
 
   function testDoNothing() external {
 
