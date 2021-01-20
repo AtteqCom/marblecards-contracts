@@ -1,9 +1,19 @@
 pragma solidity ^0.5.13;
 
-// import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
-import "./EIP712MetaTransaction.sol";
 
+import "./EIP712MetaTransaction.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
+
+contract MarbleNFT {
+  function forceApproval(uint256 _tokenId, address _approved) external;
+  function safeTransferFrom(address from, address to, uint256 tokenId) external;
+  function transferFrom(address from, address to, uint256 tokenId) external;
+}
+
+contract MarbleNFTFactory {
+  MarbleNFT public marbleNFTContract;
+}
 
 /**
  * @title MarbleMetatransactions
@@ -11,65 +21,31 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
  */
 contract MarbleMetatransactions is EIP712MetaTransaction {
 
-  address public marbleNFTFactoryContract;
-  address public marbleNFTContract;
+  MarbleNFTFactory public marbleNFTFactoryContract;
+  MarbleNFT public marbleNFTContract;
 
   /**
    * @param transactionsFromChainId only transactions from this chain will be supported.
    */
-  constructor(address _marbleNFTFactoryContract, address _marbleNFTContract, uint transactionsFromChainId) public EIP712MetaTransaction("MarbleCards test", "1", transactionsFromChainId) {
+  constructor(MarbleNFTFactory _marbleNFTFactoryContract, uint transactionsFromChainId) public EIP712MetaTransaction("MarbleCards test", "1", transactionsFromChainId) {
 		marbleNFTFactoryContract = _marbleNFTFactoryContract;
-    marbleNFTContract = _marbleNFTContract;
-    // (bool success, bytes memory returnData) = marbleNFTFactoryContract.call(abi.encodeWithSignature("marbleNFTContract"));
-    // marbleNFTContract = bytesToAddress(returnData);
+    marbleNFTContract = _marbleNFTFactoryContract.marbleNFTContract();
 	}
 
   function transferNft(address toAddress, uint256 tokenId) external {
     address issuer = msgSender();
     
-    (bool success, bytes memory returnData) = marbleNFTContract.call(abi.encodeWithSignature("forceApproval(uint256,address)", tokenId, address(this)));
-    require(success, "Could not get approval for the transfer");
-    (success, returnData) = marbleNFTContract.call(abi.encodeWithSignature("transferFrom(address,address,uint256)", issuer, toAddress, tokenId));
-    require(success, "Transfer execution reverted");
-    // marbleNftContract.forceApproval(tokenId, address(this));
-    // marbleNftContract.transferFrom(issuer, toAddress, tokenId);
+    marbleNFTContract.forceApproval(tokenId, address(this));
+    marbleNFTContract.safeTransferFrom(issuer, toAddress, tokenId);
   }
 
-  function bytesToAddress(bytes memory bys) private pure returns (address addr) {
-    assembly {
-      addr := mload(add(bys,20))
-    } 
-  }
-
-  /** SOME TEST FUNCTIONS */
-
+  /** TEST FUNCTION */
   function testDoNothing() external {
 
   }
 
-  function testReturnValue() external returns (uint256) {
-    return 435353535;
-  }
-
-  function testGetMsgSender() external returns (address) {
-    address issuer = msgSender();
-    return issuer;
-  }
-
-  function testDoNothingPure() external pure {
-
-  }
-
-  function testReturnValuePure() external pure returns (uint256) {
-    return 5;
-  }
-
-  function testGetMsgSenderView() external view returns (address) {
-    address issuer = msgSender();
-    return issuer;
+  function getContracts() external view returns (address, address) {
+    return (address(marbleNFTFactoryContract), address(marbleNFTContract));
   }
 
 }
-
-
-// 0x16E8a6081dC2044fa80E392be6830f754886c39F
