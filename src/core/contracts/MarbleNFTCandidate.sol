@@ -6,9 +6,9 @@ import "@0xcert/ethereum-utils/contracts/utils/SupportsInterface.sol";
 import "@0xcert/ethereum-utils/contracts/utils/AddressUtils.sol";
 import "./Adminable.sol";
 import "./Priceable.sol";
+import "./TokenPriceable.sol";
 import "./Pausable.sol";
 import "./MarbleNFTCandidateInterface.sol";
-import "./MarbleBankInterface.sol";
 
 
 /**
@@ -22,6 +22,7 @@ contract MarbleNFTCandidate is
   Adminable,
   Pausable,
   Priceable,
+  TokenPriceable,
   MarbleNFTCandidateInterface
 {
 
@@ -49,9 +50,6 @@ contract MarbleNFTCandidate is
     uint256 created;
   }
 
-  // bank used for payments in tokens
-  MarbleBankInterface public erc20Bank;
-
   // marble metatransactions contract
   address public marbleMetatransactionsContract;
 
@@ -65,18 +63,9 @@ contract MarbleNFTCandidate is
   mapping(uint256 => Candidate) public uriHashToCandidates;
   uint256[] public uriHashIndex;
 
-  /**
-   * @dev charges the user for given amount of given erc20 tokens if the token is accepted for payments
-   * @param _erc20 address of the erc20 token
-   * @param _amount amount to be paid
-   * @param _buyer address of the user/contract to be charged
-   */
-  modifier tokenPrice(ERC20 _erc20, uint256 _amount, address _buyer, string note) {
-    require(minimalMintingPriceInToken[_erc20] > 0, "This token is not accepted for payments");
-    require(erc20Bank.hasEnoughTokens(_erc20, _amount, _buyer), "Not enough tokens in the bank.");
-    require(erc20Bank.isAffiliate(address(this)), "User cannot be charged by this contract.");
+  modifier tokenAccepted(ERC20 token) {
+    require(minimalMintingPriceInToken[token] > 0, "This token is not accepted for payments");
     _;
-    erc20Bank.payByAffiliate(_erc20, _amount, _buyer, address(this), note);
   }
 
   modifier onlyMetatransactionsContract {
@@ -126,13 +115,13 @@ contract MarbleNFTCandidate is
     return (uriHashIndex[uriHashToCandidates[uriHash].index] == uriHash);
   }
 
-  // TODO: comment + add to interface
+  /**
+   * @dev Sets minimal price in given token for minting. Set 0 to disallow paying with this token.
+   * @param token address of the token
+   * @param price price of the minting in the given token
+   */
   function setMinimalMintingPriceInToken(address token, uint256 price) external onlyAdmin {
     minimalMintingPriceInToken[token] = price;
-  }
-
-  function getMinimalMintingPriceInToken(address token) external view returns(uint256) {
-    return minimalMintingPriceInToken[token];
   }
 
   /**
@@ -144,17 +133,6 @@ contract MarbleNFTCandidate is
     onlyAdmin
   {
     minimalMintingPrice = _minimalMintingPrice;
-  }
-
-  /**
-   * @dev Sets the bank contract used to execute payments with erc20 tokens.
-   * @param _bank the contract
-   */
-  function setBankContract(MarbleBankInterface _bank) 
-    external 
-    onlyAdmin 
-  {
-    erc20Bank = _bank;
   }
 
   /**
@@ -220,6 +198,7 @@ contract MarbleNFTCandidate is
   function createCandidateWithERC20(string _uri, ERC20 _erc20)
     external 
     whenNotPaused
+    tokenAccepted(_erc20)
     tokenPrice(_erc20, minimalMintingPriceInToken[_erc20], msg.sender, "Create Marble candidate")
     returns(uint256 index) 
   {
@@ -237,6 +216,7 @@ contract MarbleNFTCandidate is
     external 
     whenNotPaused
     onlyMetatransactionsContract
+    tokenAccepted(_erc20)
     tokenPrice(_erc20, minimalMintingPriceInToken[_erc20], _owner, "Create Marble candidate")
     returns(uint256 index) 
   {

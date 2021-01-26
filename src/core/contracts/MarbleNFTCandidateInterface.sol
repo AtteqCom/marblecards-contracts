@@ -19,10 +19,11 @@ interface MarbleNFTCandidateInterface {
     external;
 
   /**
-   * @dev Sets the bank contract used to execute payments with erc20 tokens.
-   * @param _bank the contract
+   * @dev Sets minimal price in given token for minting. Set 0 to disallow paying with this token.
+   * @param token address of the token
+   * @param price price of the minting in the given token
    */
-  function setBankContract(MarbleBankInterface _bank) 
+  function setMinimalMintingPriceInToken(address token, uint256 price) 
     external;
 
   /**
