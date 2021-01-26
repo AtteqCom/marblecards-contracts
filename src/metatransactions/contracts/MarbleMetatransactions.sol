@@ -12,10 +12,7 @@ contract MarbleNFT {
 }
 
 contract MarbleNFTCandidate {
-  function createCandidate(string calldata _uri) external payable returns(uint256 index);
-  
-  // not implemented in the candidate yet :(
-  function createCandidateWithMBCFor(string calldata _uri, address _creator) external returns(uint256 index);
+    function createCandidateWithERC20ForUser(string calldata _uri, address _erc20, address _owner) external returns(uint256 index);
 }
 
 contract MarbleNFTFactory {
@@ -38,10 +35,29 @@ contract MarbleMetatransactions is EIP712MetaTransaction {
 		marbleNFTFactoryContract = _marbleNFTFactoryContract;
 	}
 
-  function createPageCandidateWithMBC(string calldata uri, address creator) external {
-    marbleNFTFactoryContract.marbleNFTCandidateContract().createCandidateWithMBCFor(uri, creator);
+  /**
+   * @dev Create page candidate using the given uri for the given user. The user needs to have enough tokens
+   * deposited in the erc20 bank which is used by the candidate contract.
+   * The full chain works as following:
+   *   ---> user A signs the transaction 
+   *   ---> relayer executes this method and extract address of A
+   *   ---> this method initiates candidate creation for A on the candidate contract (requires permission so it cannot be called by anyone and waste someone's tokens)
+   *   ---> candidate contract issues payment to the bank contract (requires permission so it cannot be issued by anyone and waste someone else's permissions)
+   *   ---> if A has enough tokens in the bank, they are used to pay for the candidate creation
+   * @param uri candidate's uri
+   * @param erc20Token token in which the candidate creation should be paid 
+   */
+   // TODO: RENAME! not only MBC but any erc20
+  function createPageCandidateWithMBC(string calldata uri, address erc20Token) external {
+    address issuer = msgSender();
+    marbleNFTFactoryContract.marbleNFTCandidateContract().createCandidateWithERC20ForUser(uri, erc20Token, issuer);
   }
 
+  /**
+   * @dev Transfer nft from its current owner to new owner. This requires that this contract is admin of the NFT contract.
+   * @param toAddress new owner of the NFT
+   * @param tokenId id of the token to be transfered
+   */
   function transferNft(address toAddress, uint256 tokenId) external {
     address issuer = msgSender();
     
@@ -54,8 +70,8 @@ contract MarbleMetatransactions is EIP712MetaTransaction {
 
   }
 
-  function getContracts() external view returns (address, address) {
-    return (address(marbleNFTFactoryContract), address(marbleNFTFactoryContract.marbleNFTContract()));
+  function getContracts() external view returns (address, address, address) {
+    return (address(marbleNFTFactoryContract), address(marbleNFTFactoryContract.marbleNFTContract()), address(marbleNFTFactoryContract.marbleNFTCandidateContract()));
   }
 
 }
