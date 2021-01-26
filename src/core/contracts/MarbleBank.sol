@@ -9,6 +9,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
 
   event Deposit(address from, address token, uint256 amount);
   event Payment(address from, address to, address token, uint256 amount);
+  event Withdrawal(address user, address token, uint256 amount);
   event AffiliateAdded(address affiliate);
   event AffiliateRemoved(address affiliate);
 
@@ -21,7 +22,6 @@ contract MarbleBank is MarbleBankInterface, Ownable {
     address to;
     string note;
     uint256 timestamp;
-    bool isDeposit;
   }
 
   struct UserAccount {
@@ -71,6 +71,18 @@ contract MarbleBank is MarbleBankInterface, Ownable {
     _deposit(msg.sender, token, amount, note);
   }
 
+  /**
+   * @dev Withdraws givem amount of given tokens of the sender, if the balance permit's it.
+   * @param token eddress of the erc20 token to be withdrawn
+   * @param amount amount of the tokens to be withdrawn
+   * @param note every transaction has its note
+   */
+  function withdraw(ERC20 token, uint256 amount, string note) external {
+    require(_userBalance(msg.sender, token) >= amount, "Not enough tokens");
+
+    _withdraw(msg.sender, token, amount, note);
+  }
+
 
   /**
    * @dev Pays given amount of given tokens.
@@ -110,7 +122,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
    * @param token token whose balance this method will return
    */
   function userBalance(ERC20 token) external view hasTokenAccount(msg.sender, token) returns(uint256) {
-    return accounts[msg.sender].tokenAccounts[address(token)].balance;
+    return _userBalance(msg.sender, token);
   }
 
   /**
@@ -166,8 +178,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
       from: from,
       to: address(this),
       note: note,
-      timestamp: now,
-      isDeposit: true
+      timestamp: now
     }));
     
     emit Deposit(from, token, amount);
@@ -178,17 +189,36 @@ contract MarbleBank is MarbleBankInterface, Ownable {
     require(userTokenAccount.balance >= amount, "Not enough tokens for the payment");
 
     token.transferFrom(from, to, amount);
-    userTokenAccount.balance += amount;
+    userTokenAccount.balance -= amount;
     userTokenAccount.transactions.push(Transaction({
       id: ++lastTransactionId,
       from: from,
       to: to,
       note: note,
-      timestamp: now,
-      isDeposit: false
+      timestamp: now
     }));
 
     emit Payment(from, to, token, amount);
+  }
+
+  function _withdraw(address user, ERC20 token, uint256 amount, string note) private {
+    UserTokenAccount storage userTokenAccount = accounts[user].tokenAccounts[address(token)];
+
+    token.transferFrom(address(this), user, amount);
+    userTokenAccount.balance -= amount;
+    userTokenAccount.transactions.push(Transaction({
+      id: ++lastTransactionId,
+      from: address(this),
+      to: user,
+      note: note,
+      timestamp: now
+    }));
+
+    emit Withdrawal(user, token, amount);
+  }
+
+  function _userBalance(address userAddress, ERC20 token) private view hasTokenAccount(userAddress, token) returns(uint256) {
+    return accounts[userAddress].tokenAccounts[address(token)].balance;
   }
 
 }
