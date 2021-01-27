@@ -24,6 +24,7 @@ contract("MarbleCandidateTest", accounts => {
 
   before(async () => {
     candidateContract = await MarbleNFTCandidate.deployed();
+    await candidateContract.setMinimalPrice(config.CANDIDATE_MINIMAL_PRICE);
   });
 
   it("returns correct count of NFT candidates after creation", async () => {
@@ -39,7 +40,7 @@ contract("MarbleCandidateTest", accounts => {
     assert.equal(count, 2);
   });
 
-  it("Test candidates", async() =>{
+  it("Test candidates", async() => {
     var count_before = await candidateContract.getCandidatesCount();
         logger.log("count_before:" + count_before);
 

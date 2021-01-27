@@ -5,6 +5,7 @@ const MarbleNFT = artifacts.require("./MarbleNFT.sol");
 
 const assertRevert = require('../utils/assertRevert');
 const [rick, morty, summer, beth, jerry] = require("../utils/actors.js");
+const config = require('../../config');
 
 const duration = 62; // seconds
 const nonExistingURI = "hi.i.am.non-existing.uri";
@@ -31,6 +32,7 @@ contract("MarbleNFTFactoryTest", accounts => {
     auctionContract = await MarbleDutchAuction.deployed();
 
     // ini few candidates
+    await candidateContract.setMinimalPrice(config.CANDIDATE_MINIMAL_PRICE);
     await candidateContract.createCandidate(rick.uri, {from: rick.account, value: rick.payment});
     await candidateContract.createCandidate(morty.uri, {from: morty.account, value: morty.payment});
     await candidateContract.createCandidate(summer.uri, {from: summer.account, value: summer.payment});

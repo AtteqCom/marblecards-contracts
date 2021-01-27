@@ -5,3 +5,4 @@ docker/geth/delete.me
 docker/geth/ignore.me.js
 build/contracts/
 **/latest_deploy.log
+build/
