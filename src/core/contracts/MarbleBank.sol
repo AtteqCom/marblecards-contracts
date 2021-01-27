@@ -7,6 +7,12 @@ import "./MarbleBankInterface.sol";
 
 contract MarbleBank is MarbleBankInterface, Ownable {
 
+  string constant REVERT_NOT_ENOUGH_TOKENS = "Not enough tokens";
+  string constant REVERT_USER_ACCOUNT_DOES_NOT_EXIST = "User account does not exist";
+  string constant REVERT_USER_DOES_NOT_HAVE_ACCOUNT_FOR_TOKEN = "Token account for the given user does not exist";
+  string constant REVERT_USER_NOT_AFFILIATE = "User is not affiliate";
+  string constant REVERT_USER_IS_AFFILIATE = "User is affiliate";
+
   event Deposit(address from, address token, uint256 amount);
   event Payment(address from, address to, address token, uint256 amount);
   event Withdrawal(address user, address token, uint256 amount);
@@ -39,13 +45,13 @@ contract MarbleBank is MarbleBankInterface, Ownable {
   }
 
   modifier hasTokenAccount(address user, address token) {
-    require(accounts[user].exists, "User account does not exist");
-    require(accounts[user].tokenAccounts[token].exists, "Token account for the given user does not exist");
+    require(accounts[user].exists, REVERT_USER_ACCOUNT_DOES_NOT_EXIST);
+    require(accounts[user].tokenAccounts[token].exists, REVERT_USER_DOES_NOT_HAVE_ACCOUNT_FOR_TOKEN);
     _;
   }
 
   modifier mustBeAffiliate(address user) {
-    require(affiliates[user], "User is not affiliate");
+    require(affiliates[user], REVERT_USER_NOT_AFFILIATE);
     _;
   }
 
@@ -65,7 +71,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
    * @param note every transaction has its note
    */
   function deposit(ERC20 token, uint256 amount, string note) external {
-    require(token.balanceOf(msg.sender) >= amount, "Not enough tokens");
+    require(token.balanceOf(msg.sender) >= amount, REVERT_NOT_ENOUGH_TOKENS);
 
     _createUserTokenAccountIfDoesntExist(msg.sender, token);
     _deposit(msg.sender, token, amount, note);
@@ -78,7 +84,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
    * @param note every transaction has its note
    */
   function withdraw(ERC20 token, uint256 amount, string note) external {
-    require(_userBalance(msg.sender, token) >= amount, "Not enough tokens");
+    require(_userBalance(msg.sender, token) >= amount, REVERT_NOT_ENOUGH_TOKENS);
 
     _withdraw(msg.sender, token, amount, note);
   }
@@ -129,7 +135,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
    * @dev Adds new affiliate. If the address already is affiliate, the transaction reverts.
    */
   function addAffiliate(address newAffiliate) external onlyOwner {
-    require(!affiliates[newAffiliate], "The address is already affiliate");
+    require(!affiliates[newAffiliate], REVERT_USER_IS_AFFILIATE);
     affiliates[newAffiliate] = true;
 
     emit AffiliateAdded(newAffiliate);
@@ -139,7 +145,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
    * @dev Removes given affiliate. If the address is not affiliate, the transaction reverts.
    */
   function removeAffiliate(address affiliate) external onlyOwner {
-    require(affiliates[affiliate], "The address is not affiliate");
+    require(affiliates[affiliate], REVERT_USER_NOT_AFFILIATE);
     affiliates[affiliate] = false;
 
     emit AffiliateRemoved(affiliate);
@@ -149,7 +155,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
    * @dev Checks whether the given address is affiliate.
    * @param testedAddress address to be tested
    */
-  function isAffiliate(address testedAddress) external view returns(bool){
+  function isAffiliate(address testedAddress) external view returns(bool) {
     return affiliates[testedAddress];
   }
 
@@ -186,9 +192,9 @@ contract MarbleBank is MarbleBankInterface, Ownable {
 
   function _pay(address from, address to, ERC20 token, uint256 amount, string note) private hasTokenAccount(from, token) {
     UserTokenAccount storage userTokenAccount = accounts[from].tokenAccounts[address(token)];
-    require(userTokenAccount.balance >= amount, "Not enough tokens for the payment");
+    require(userTokenAccount.balance >= amount, REVERT_NOT_ENOUGH_TOKENS);
 
-    token.transferFrom(from, to, amount);
+    token.transfer(to, amount);
     userTokenAccount.balance -= amount;
     userTokenAccount.transactions.push(Transaction({
       id: ++lastTransactionId,
@@ -204,7 +210,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
   function _withdraw(address user, ERC20 token, uint256 amount, string note) private {
     UserTokenAccount storage userTokenAccount = accounts[user].tokenAccounts[address(token)];
 
-    token.transferFrom(address(this), user, amount);
+    token.transfer(user, amount);
     userTokenAccount.balance -= amount;
     userTokenAccount.transactions.push(Transaction({
       id: ++lastTransactionId,
