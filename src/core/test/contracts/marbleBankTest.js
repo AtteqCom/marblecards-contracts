@@ -214,7 +214,6 @@ contract("MarbleBank", accounts => {
       assert.isFalse(result);
     })
 
-    // TODO: this test may be added also to other functions
     it("reverts when user does not have account", async () => {
       await truffleAssert.reverts(
         bankContract.hasEnoughTokens(erc20Token.address, 10, owner), 

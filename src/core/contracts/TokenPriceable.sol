@@ -44,7 +44,7 @@ contract TokenPriceable is Claimable {
   {
     uint256 tokensAmount = _token.balanceOf(address(this));
 
-    _token.transferFrom(address(this), owner, tokensAmount);
+    _token.transfer(owner, tokensAmount);
 
     emit TokensWithdrawal(_token, tokensAmount);   
   }

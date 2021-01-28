@@ -47,8 +47,7 @@ contract MarbleMetatransactions is EIP712MetaTransaction {
    * @param uri candidate's uri
    * @param erc20Token token in which the candidate creation should be paid 
    */
-   // TODO: RENAME! not only MBC but any erc20
-  function createPageCandidateWithMBC(string calldata uri, address erc20Token) external {
+  function createPageCandidateWithERC20(string calldata uri, address erc20Token) external {
     address issuer = msgSender();
     marbleNFTFactoryContract.marbleNFTCandidateContract().createCandidateWithERC20ForUser(uri, erc20Token, issuer);
   }
