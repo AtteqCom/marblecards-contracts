@@ -1,31 +1,18 @@
-pragma solidity ^0.5.13;
+pragma solidity ^0.6.0;
 
 
 import "./EIP712MetaTransaction.sol";
 import "./MarbleMetatransactionsInterface.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 
-contract MarbleNFT {
-  function forceApproval(uint256 _tokenId, address _approved) external;
-  function safeTransferFrom(address from, address to, uint256 tokenId) external;
-  function transferFrom(address from, address to, uint256 tokenId) external;
-}
-
-contract MarbleNFTCandidate {
-    function createCandidateWithERC20ForUser(string calldata _uri, address _erc20, address _owner) external returns(uint256 index);
-}
-
-contract MarbleNFTFactory {
-  MarbleNFT public marbleNFTContract;
-  MarbleNFTCandidate public marbleNFTCandidateContract;
-}
 
 /**
  * @title MarbleMetatransactions
  * @dev Contract allowing metatransactions for Marble Dapp.
  */
-contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactionsInterface {
+contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactionsInterface, Ownable {
 
   MarbleNFTFactory public marbleNFTFactoryContract;
 
@@ -48,7 +35,7 @@ contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactions
    * @param uri candidate's uri
    * @param erc20Token token in which the candidate creation should be paid 
    */
-  function createPageCandidateWithERC20(string calldata uri, address erc20Token) external {
+  function createPageCandidateWithERC20(string calldata uri, address erc20Token) override external {
     address issuer = msgSender();
     marbleNFTFactoryContract.marbleNFTCandidateContract().createCandidateWithERC20ForUser(uri, erc20Token, issuer);
   }
@@ -58,11 +45,21 @@ contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactions
    * @param toAddress new owner of the NFT
    * @param tokenId id of the token to be transfered
    */
-  function transferNft(address toAddress, uint256 tokenId) external {
+  function transferNft(address toAddress, uint256 tokenId, MarbleNFT m) override external {
     address issuer = msgSender();
+
+    m.forceApproval(tokenId, address(this));
+    // m.safeTransferFrom(issuer, toAddress, tokenId);
     
-    marbleNFTFactoryContract.marbleNFTContract().forceApproval(tokenId, address(this));
-    marbleNFTFactoryContract.marbleNFTContract().safeTransferFrom(issuer, toAddress, tokenId);
+    // marbleNFTFactoryContract.marbleNFTContract().forceApproval(tokenId, address(this));
+    // marbleNFTFactoryContract.marbleNFTContract().safeTransferFrom(issuer, toAddress, tokenId);
+  }
+
+  /**
+   * @dev Sets the marble nft factory contract.
+   */
+  function setMarbleFactoryContract(MarbleNFTFactory _marbleNFTFactoryContract) override external onlyOwner {
+    marbleNFTFactoryContract = _marbleNFTFactoryContract;
   }
 
 }

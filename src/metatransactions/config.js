@@ -2,5 +2,6 @@ module.exports = {
   LOG: process.env.LOG,
   INFURA_KEY: process.env.INFURA_KEY,
   WALLET_MNEMONIC: process.env.WALLET_MNEMONIC,
-  WALLET_PASSWORDS: process.env.WALLET_PASSWORDS
+  WALLET_PASSWORDS: process.env.WALLET_PASSWORDS,
+  CANDIDATE_MINIMAL_PRICE: process.env.CANDIDATE_MINIMAL_PRICE
 };

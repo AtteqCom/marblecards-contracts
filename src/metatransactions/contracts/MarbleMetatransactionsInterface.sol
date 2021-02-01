@@ -1,8 +1,25 @@
-pragma solidity ^0.5.13;
+pragma solidity ^0.6.0;
 
 
 import "./EIP712MetaTransaction.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
+
+abstract contract MarbleNFT {
+  function forceApproval(uint256 _tokenId, address _approved) external virtual;
+  function safeTransferFrom(address from, address to, uint256 tokenId) external virtual;
+  function transferFrom(address from, address to, uint256 tokenId) external virtual;
+}
+
+abstract contract MarbleNFTCandidate {
+    function createCandidateWithERC20ForUser(string calldata _uri, address _erc20, address _owner) external virtual returns(uint256 index);
+}
+
+abstract contract MarbleNFTFactory {
+  MarbleNFT public marbleNFTContract;
+  MarbleNFTCandidate public marbleNFTCandidateContract;
+}
+
 
 interface MarbleMetatransactionsInterface {
 
@@ -19,6 +36,11 @@ interface MarbleMetatransactionsInterface {
    * @param toAddress new owner of the NFT
    * @param tokenId id of the token to be transfered
    */
-  function transferNft(address toAddress, uint256 tokenId) external;
+  function transferNft(address toAddress, uint256 tokenId, MarbleNFT nft) external;
+
+  /**
+   * @dev Sets the marble nft factory contract.
+   */
+  function setMarbleFactoryContract(MarbleNFTFactory _marbleNFTFactoryContract) external;
 
 }
