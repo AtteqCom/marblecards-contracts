@@ -19,16 +19,18 @@
     "dotenv": "^6.2.0",
     "eslint": "5.0.1",
     "ethjs-util": "^0.1.6",
-    "truffle": "5.0.1",
+    "truffle": "5.1.5",
     "truffle-deploy": "^1.1.0",
     "truffle-flattener": "^1.2.10",
     "truffle-assertions": "^0.9.2",
     "truffle-hdwallet-provider": "^1.0.0-web3one.5",
     "fast-csv": "2.4.1",
-    "@0xcert/ethereum-erc20-contracts": "2.1.0",
+    "@0xcert/ethereum-erc20": "1.1.0",
     "@0xcert/ethereum-erc721": "1.10.0",
     "@0xcert/ethereum-utils": "1.1.0",
     "@opengsn/gsn": "^2.0.0",
-    "@openzeppelin/contracts": "^2.5.0"
+    "@openzeppelin/contracts": "3.0.0",
+    "@gnosis.pm/mock-contract": "^4.0.0",
+    "ethereum-doppelganger": "0.0.7"
   }
 }

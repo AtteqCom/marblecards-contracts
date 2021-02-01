@@ -16,6 +16,7 @@ builder:
     - "./src/core/test:/marblegame/core/test"
     - "./src/core/deployments:/marblegame/core/deployments"
     - "./src/metatransactions/contracts:/marblegame/metatransactions/contracts"
+    - "./src/metatransactions/externalABI:/marblegame/metatransactions/externalABI"
     - "./src/metatransactions/migrations:/marblegame/metatransactions/migrations"
     - "./src/metatransactions/test:/marblegame/metatransactions/test"
     - "./src/metatransactions/deployments:/marblegame/metatransactions/deployments"

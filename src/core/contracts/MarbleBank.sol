@@ -20,7 +20,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
   event AffiliateRemoved(address affiliate);
 
   /**
-   * Information about a transactio
+   * Information about a transaction
    */
   struct Transaction {
     uint256 id;
