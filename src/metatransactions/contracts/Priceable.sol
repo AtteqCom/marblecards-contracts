@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.0;
 
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -54,6 +55,8 @@ contract Priceable is Ownable {
     emit Withdraw(balance);
   }
 
-  // fallback function that allows contract to accept ETH
+  // fallback functions that allows contract to accept ETH
   fallback() external payable {}
+  receive() external payable {}
+
 }

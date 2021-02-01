@@ -4,5 +4,5 @@ docker/geth/delete.me
 .env
 docker/geth/ignore.me.js
 build/contracts/
-**/latest_deploy.log
+**/latest_deploy*.log
 build/

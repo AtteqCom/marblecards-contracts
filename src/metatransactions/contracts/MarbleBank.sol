@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -161,10 +162,9 @@ contract MarbleBank is MarbleBankInterface, Ownable {
 
   function _createUserTokenAccountIfDoesntExist(address userAddress, ERC20 token) private {
     if (!accounts[userAddress].exists) {
-      accounts[userAddress] = UserAccount({
-        userAddress: userAddress,
-        exists: true
-      });
+      UserAccount storage newUserAccount = accounts[userAddress];
+      newUserAccount.userAddress = userAddress;
+      newUserAccount.exists = true;
     } 
     
     if (!accounts[userAddress].tokenAccounts[address(token)].exists) {
@@ -184,7 +184,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
       from: from,
       to: address(this),
       note: note,
-      timestamp: now
+      timestamp: block.timestamp
     }));
     
     emit Deposit(from, address(token), amount);
@@ -201,7 +201,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
       from: from,
       to: to,
       note: note,
-      timestamp: now
+      timestamp: block.timestamp
     }));
 
     emit Payment(from, to, address(token), amount);
@@ -217,7 +217,7 @@ contract MarbleBank is MarbleBankInterface, Ownable {
       from: address(this),
       to: user,
       note: note,
-      timestamp: now
+      timestamp: block.timestamp
     }));
 
     emit Withdrawal(user, address(token), amount);

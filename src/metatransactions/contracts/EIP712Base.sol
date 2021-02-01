@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.0;
 
 
 contract EIP712Base {
@@ -19,7 +20,7 @@ contract EIP712Base {
     /**
      * @param _transactionsFromChainId only transactions from this chain will be supported.
      */
-    constructor(string memory name, string memory version, uint _transactionsFromChainId) public {
+    constructor(string memory name, string memory version, uint _transactionsFromChainId) {
         transactionsFromChainId = _transactionsFromChainId;
         domainSeperator = keccak256(abi.encode(
             EIP712_DOMAIN_TYPEHASH,

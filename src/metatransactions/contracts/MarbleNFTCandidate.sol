@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -96,8 +97,8 @@ contract MarbleNFTCandidate is
 
     uriHashIndex.push(uriHash);
     uint candidatesLength = uriHashIndex.length;
-    uriHashToCandidates[uriHash] = Candidate(candidatesLength - 1, creator, price, paidInToken, _uri, now);
-    emit CandidateCreated(uriHashIndex.length - 1, creator, price, paidInToken, _uri, now);
+    uriHashToCandidates[uriHash] = Candidate(candidatesLength - 1, creator, price, paidInToken, _uri, block.timestamp);
+    emit CandidateCreated(uriHashIndex.length - 1, creator, price, paidInToken, _uri, block.timestamp);
 
     return uriHashIndex.length - 1;
   }
@@ -277,7 +278,7 @@ contract MarbleNFTCandidate is
   function getUriHash(string memory _uri)
     override
     external
-    view
+    pure
     returns(uint256 hash)
   {
     return _getUriHash(_uri);

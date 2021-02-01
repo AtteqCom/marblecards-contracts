@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.0;
 
 
 import "./EIP712MetaTransaction.sol";
@@ -36,7 +37,7 @@ interface MarbleMetatransactionsInterface {
    * @param toAddress new owner of the NFT
    * @param tokenId id of the token to be transfered
    */
-  function transferNft(address toAddress, uint256 tokenId, MarbleNFT nft) external;
+  function transferNft(address toAddress, uint256 tokenId) external;
 
   /**
    * @dev Sets the marble nft factory contract.

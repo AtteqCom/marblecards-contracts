@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.0;
 
 
 import "./EIP712MetaTransaction.sol";
@@ -19,7 +20,9 @@ contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactions
   /**
    * @param transactionsFromChainId only transactions from this chain will be supported.
    */
-  constructor(MarbleNFTFactory _marbleNFTFactoryContract, uint transactionsFromChainId) public EIP712MetaTransaction("MarbleCards test", "1", transactionsFromChainId) {
+  constructor(MarbleNFTFactory _marbleNFTFactoryContract, uint transactionsFromChainId) 
+    EIP712MetaTransaction("MarbleCards test", "1", transactionsFromChainId) 
+  {
 		marbleNFTFactoryContract = _marbleNFTFactoryContract;
 	}
 
@@ -45,14 +48,11 @@ contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactions
    * @param toAddress new owner of the NFT
    * @param tokenId id of the token to be transfered
    */
-  function transferNft(address toAddress, uint256 tokenId, MarbleNFT m) override external {
+  function transferNft(address toAddress, uint256 tokenId) override external {
     address issuer = msgSender();
 
-    m.forceApproval(tokenId, address(this));
-    // m.safeTransferFrom(issuer, toAddress, tokenId);
-    
-    // marbleNFTFactoryContract.marbleNFTContract().forceApproval(tokenId, address(this));
-    // marbleNFTFactoryContract.marbleNFTContract().safeTransferFrom(issuer, toAddress, tokenId);
+    marbleNFTFactoryContract.marbleNFTContract().forceApproval(tokenId, address(this));
+    marbleNFTFactoryContract.marbleNFTContract().safeTransferFrom(issuer, toAddress, tokenId);
   }
 
   /**
