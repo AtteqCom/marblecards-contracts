@@ -12,12 +12,10 @@ import "./Pausable.sol";
 import "./MarbleNFTCandidateInterface.sol";
 
 
-/**
- * @title Marble NFT Candidate Contract
- * @dev Contracts allows public audiance to create Marble NFT candidates. All our candidates for NFT goes through our services to figure out if they are suitable for Marble NFT.
- * once their are picked our other contract will create NFT with same owner as candite and plcae it to minting auction. In minitng auction everyone can buy created NFT until duration ends.
- * If duration is over, and noone has bought NFT, then creator of candidate can take Marble NFT from minting auction to his collection.
- */
+/// @title Marble NFT Candidate Contract
+/// @dev Contracts allows public audiance to create Marble NFT candidates. All our candidates for NFT goes through our services to figure out if they are suitable for Marble NFT.
+/// once their are picked our other contract will create NFT with same owner as candite and plcae it to minting auction. In minitng auction everyone can buy created NFT until duration ends.
+/// If duration is over, and noone has bought NFT, then creator of candidate can take Marble NFT from minting auction to his collection.
 contract MarbleNFTCandidate is
   ERC165,
   Adminable,
@@ -30,54 +28,64 @@ contract MarbleNFTCandidate is
   using SafeMath for uint256;
   using Address for address;
 
+  /// @notice Event emited whenever a new candidate is created
+  /// @param index Index of the candidate
+  /// @param owner Owner of the new candidate
+  /// @param mintingPrice Price for which the candidate was bought (can be number of tokens or chain's main currency)
+  /// @param paidInToken Address of the erc20 token used to buy this candidate or zero address if if was bought using chain's main currency
+  /// @param uri Uri of the candidate
+  /// @param createdTimestamp Timestamp when the candidate was created
   event CandidateCreated(uint256 index, address owner, uint256 mintingPrice, address paidInToken, string uri, uint256 createdTimestamp);
 
+  /// @dev Structure representing a candidate
+  /// @param index Index of the candidate
+  /// @param owner Possible NFT creator
+  /// @param mintingPrice Price paid for minting and placing NFT to initial auction (either number of tokens or chain's main currency)
+  /// @param paidInToken address of the token used to pay for the candidate (zero address for payment in chain's currency)
+  /// @param uri Candidate's DNA
+  /// @param created Date of creation
   struct Candidate {
     uint256 index;
-
-    // possible NFT creator
     address owner;
-
-    // price paid for minting and placing NFT to initial auction
     uint256 mintingPrice;
-
-    // address of the token used to pay for the candidate (0 for payment in chain currency)
     address paidInToken;
-
-    // CANDIDATE'S DNA
     string uri;
-
-    // date of creation
     uint256 created;
   }
 
-  // marble metatransactions contract
+  /// @notice Marble metatransactions contract
   address public marbleMetatransactionsContract;
 
-  // minimal price for creating candidate
+  /// @notice Minimal price for creating candidate
   uint256 public minimalMintingPrice;
 
-  // minimal price for creating candidate in erc20 token
+  /// @notice Minimal prices for creating candidate in erc20 token
+  /// @dev If the price is set to zero, it means that candidates cannot be bought using that token
   mapping(address => uint256) public minimalMintingPriceInToken;
 
-  // index of candidate in candidates is unique candidate id
+  /// @notice Index of candidate in candidates is unique candidate id
   mapping(uint256 => Candidate) public uriHashToCandidates;
+
   uint256[] public uriHashIndex;
 
-  modifier tokenAccepted(ERC20 token) {
+  /// @notice Allows executing the function only if the givene token is allowed to use to buy candidate
+  /// @param token Address of the tested token
+  modifier tokenAccepted(ERC20 token) 
+  {
     require(minimalMintingPriceInToken[address(token)] > 0, "This token is not accepted for payments");
     _;
   }
 
-  modifier onlyMetatransactionsContract {
+  /// @notice Allows execute the function only if it was executed by the marble metatransaction contract
+  modifier onlyMetatransactionsContract 
+  {
     require(msg.sender == marbleMetatransactionsContract, "Can be called only by metatransactions contract");
     _;
   }
 
-  /**
-   * @dev Transforms URI to hash.
-   * @param _uri URI to be transformed to hash.
-   */
+  /// @dev Transforms URI to hash
+  /// @param _uri URI to be transformed to hash
+  /// @return hash_ The hash of the uri
   function _getUriHash(string memory _uri)
     internal
     pure
@@ -86,6 +94,12 @@ contract MarbleNFTCandidate is
     return uint256(keccak256(abi.encodePacked(_uri)));
   }
 
+  /// @dev Creates the given candidate
+  /// @param _uri Uri of the candidate
+  /// @param creator Address of the creator of the candidate
+  /// @param price Price of the candidate (either number of tokens or chain's currency)
+  /// @param paidInToken Address of the token in which the candidate creation was paid (or zero address if it was paid in chain's currency)
+  /// @return index Index of the newly created candidate
   function _createCandidate(string memory _uri, address creator, uint256 price, address paidInToken)
     internal
     returns(uint256 index)
@@ -103,10 +117,9 @@ contract MarbleNFTCandidate is
     return uriHashIndex.length - 1;
   }
 
-  /**
-   * @dev Returns true if URI is already a candidate. Otherwise false.
-   * @param _uri URI to check
-   */
+  /// @notice Checks, whether a candidate with the given uri exists already
+  /// @param _uri URI to check
+  /// @return isIndeed True if URI is already a candidate, false otherwise
   function _isCandidate(string memory _uri)
     internal
     view
@@ -118,11 +131,9 @@ contract MarbleNFTCandidate is
     return (uriHashIndex[uriHashToCandidates[uriHash].index] == uriHash);
   }
 
-  /**
-   * @dev Sets minimal price in given token for minting. Set 0 to disallow paying with this token.
-   * @param token address of the token
-   * @param price price of the minting in the given token
-   */
+  /// @notice Sets minimal price in given token for minting. Set 0 to disallow paying with this token.
+  /// @param token Address of the token
+  /// @param price Price of the minting in the given token
   function setMinimalMintingPriceInToken(address token, uint256 price) 
     override 
     external 
@@ -131,10 +142,8 @@ contract MarbleNFTCandidate is
     minimalMintingPriceInToken[token] = price;
   }
 
-  /**
-   * @dev Sets minimal price for creating Marble NFT Candidate
-   * @param _minimalMintingPrice Minimal price asked from creator of Marble NFT candidate
-   */
+  /// @notice Sets minimal price for creating Marble NFT Candidate
+  /// @param _minimalMintingPrice Minimal price asked from creator of Marble NFT candidate
   function setMinimalPrice(uint256 _minimalMintingPrice)
     override
     external
@@ -143,10 +152,9 @@ contract MarbleNFTCandidate is
     minimalMintingPrice = _minimalMintingPrice;
   }
 
-  /**
-   * @dev Sets the metatransactions contract.
-   * @param _marbleMetatransactionsContract the contract
-   */
+  /// @notice Sets the metatransactions contract
+  /// @dev Can be called only by admin
+  /// @param _marbleMetatransactionsContract the contract
   function setMetatransactionsContract(address _marbleMetatransactionsContract) 
     override
     external 
@@ -155,10 +163,9 @@ contract MarbleNFTCandidate is
     marbleMetatransactionsContract = _marbleMetatransactionsContract;
   }
 
-  /**
-   * @dev Returns true if URI is already a candidate. Otherwise false.
-   * @param _uri URI to check
-   */
+  /// @notice Checks, whether a candidate with the given uri exists already
+  /// @param _uri URI to check
+  /// @return isIndeed True if URI is already a candidate, false otherwise
   function isCandidate(string memory _uri)
     override
     external
@@ -168,11 +175,10 @@ contract MarbleNFTCandidate is
     return _isCandidate(_uri);
   }
 
-  /**
-   * @dev Creates Marble NFT Candidate. This candidate will go through our processing. If it's suitable, 
-   * then Marble NFT is created. It is paid in the chain's currency.
-   * @param _uri URI of resource you want to transform to Marble NFT
-   */
+  /// @notice Creates Marble NFT Candidate. This candidate will go through our processing. If it's suitable, 
+  /// then Marble NFT is created. It is paid in the chain's currency.
+  /// @param _uri URI of resource you want to transform to Marble NFT
+  /// @return index Index of the newly created candidate
   function createCandidate(string memory _uri)
     override
     external
@@ -184,12 +190,11 @@ contract MarbleNFTCandidate is
     return _createCandidate(_uri, msg.sender, msg.value, address(0));
   }
 
-  /**
-   * @dev Creates Marble NFT Candidate for given user (cahrging the sender). This candidate will go through our processing. 
-   * If it's suitable, then Marble NFT is created. It is paid in the chain's currency.
-   * @param _uri URI of resource you want to transform to Marble NFT
-   * @param _owner address of the user who will own the candidate
-   */
+  /// @notice Creates Marble NFT Candidate for given user (cahrging the sender). This candidate will go through our processing. 
+  /// If it's suitable, then Marble NFT is created. It is paid in the chain's currency.
+  /// @param _uri URI of resource you want to transform to Marble NFT
+  /// @param _owner Address of the user who will own the candidate
+  /// @return index Index of the newly created candidate
   function createCandidateForUser(string memory _uri, address _owner)
     override
     external
@@ -201,12 +206,11 @@ contract MarbleNFTCandidate is
     return _createCandidate(_uri, _owner, msg.value, address(0));
   }
 
-  /**
-   * @dev Creates Marble NFT Candidate. This candidate will go through our processing. If it's suitable, 
-   * then Marble NFT is created. It is paid by the given erc20 token.
-   * @param _uri URI of resource you want to transform to Marble NFT
-   * @param _erc20 Token in which the creation will be paid
-   */
+  /// @notice Creates Marble NFT Candidate. This candidate will go through our processing. If it's suitable, 
+  /// then Marble NFT is created. It is paid by the given erc20 token.
+  /// @param _uri URI of resource you want to transform to Marble NFT
+  /// @param _erc20 Token in which the creation will be paid
+  /// @return index Index of the newly created candidate
   function createCandidateWithERC20(string memory _uri, ERC20 _erc20)
     override
     external 
@@ -218,13 +222,12 @@ contract MarbleNFTCandidate is
     return _createCandidate(_uri, msg.sender, minimalMintingPriceInToken[address(_erc20)], address(_erc20));
   }
 
-  /**
-   * @dev Creates Marble NFT Candidate for given user (cahrging the user). This candidate will go through our processing. 
-   * If it's suitable, then Marble NFT is created. It is paid by the given erc20 token.
-   * @param _uri URI of resource you want to transform to Marble NFT
-   * @param _erc20 Token in which the creation will be paid
-   * @param _owner address of the user who will own the candidate
-   */
+  /// @notice Creates Marble NFT Candidate for given user (cahrging the user). This candidate will go through our processing. 
+  /// If it's suitable, then Marble NFT is created. It is paid by the given erc20 token.
+  /// @param _uri URI of resource you want to transform to Marble NFT
+  /// @param _erc20 Token in which the creation will be paid
+  /// @param _owner Address of the user who will own the candidate
+  /// @return index Index of the newly created candidate
   function createCandidateWithERC20ForUser(string memory _uri, ERC20 _erc20, address _owner)
     override
     external 
@@ -237,10 +240,9 @@ contract MarbleNFTCandidate is
     return _createCandidate(_uri, _owner, minimalMintingPriceInToken[address(_erc20)], address(_erc20));
   }
 
-  /**
-   * @dev Removes URI from candidate list.
-   * @param _uri URI to be removed from candidate list.
-   */
+  /// @notice Removes URI from candidate list
+  /// @dev Can be execute only by admin
+  /// @param _uri URI to be removed from candidate list
   function removeCandidate(string memory _uri)
     override
     external
@@ -259,9 +261,7 @@ contract MarbleNFTCandidate is
     uriHashIndex.pop();
   }
 
-  /**
-   * @dev Returns total count of candidates.
-   */
+  /// @notice Returns total count of candidates
   function getCandidatesCount()
     override
     external
@@ -271,10 +271,9 @@ contract MarbleNFTCandidate is
     return uriHashIndex.length;
   }
 
-  /**
-   * @dev Transforms URI to hash.
-   * @param _uri URI to be transformed to hash.
-   */
+  /// @notice Transforms URI to hash
+  /// @param _uri URI to be transformed to hash
+  /// @return hash The hash
   function getUriHash(string memory _uri)
     override
     external
@@ -285,10 +284,13 @@ contract MarbleNFTCandidate is
   }
 
 
-  /**
-   * @dev Returns Candidate model by URI
-   * @param _uri URI representing candidate
-   */
+  /// @notice Returns Candidate model by URI
+  /// @param _uri URI representing candidate
+  /// @return index Index of the candidate
+  /// @return owner Onwer of the candidate
+  /// @return mintingPrice Price used to buy the candidate (either number of tokens or chain's currency)
+  /// @return uri Candidate's URI
+  /// @return created Date of the candidate creation
   function getCandidate(string memory _uri)
     override
     external

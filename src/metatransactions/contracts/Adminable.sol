@@ -3,18 +3,19 @@ pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/**
- * @title Adminable
- * @dev Allows to manage privilages to special contract functionality.
- */
+/// @title Adminable
+/// @dev Allows to manage privilages to special contract functionality.
 contract Adminable is Ownable {
+
+  /// @notice Maps admin address to the admin's number
   mapping(address => uint) public adminsMap;
+
+  /// @notice List of admins
   address[] public adminList;
 
-  /**
-   * @dev Returns true, if provided address has special privilages, otherwise false
-   * @param adminAddress - address to check
-   */
+  /// @notice Checks whether the given address is admin
+  /// @param adminAddress Address to check
+  /// @return isIndeed True, if provided address has special privilages, otherwise false
   function isAdmin(address adminAddress)
     public
     view
@@ -26,10 +27,10 @@ contract Adminable is Ownable {
     return (adminList[adminsMap[adminAddress]] == adminAddress);
   }
 
-  /**
-   * @dev Grants special rights for address holder
-   * @param adminAddress - address of future admin
-   */
+  /// @notice Grants special rights for address holder
+  /// @dev Adds the address to the list of admins
+  /// @param adminAddress Address of future admin
+  /// @return index Admin's number
   function addAdmin(address adminAddress)
     public
     onlyOwner
@@ -44,10 +45,10 @@ contract Adminable is Ownable {
     return adminsCount-1;
   }
 
-  /**
-   * @dev Removes special rights for provided address
-   * @param adminAddress - address of current admin
-   */
+  /// @notice Removes special rights for provided address
+  /// @dev Removes the address from the list of admins
+  /// @param adminAddress Address of current admin
+  /// @return index Number of the removed admin
   function removeAdmin(address adminAddress)
     public
     onlyOwner
@@ -66,9 +67,7 @@ contract Adminable is Ownable {
     return rowToDelete;
   }
 
-  /**
-   * @dev modifier Throws if called by any account other than the owner.
-   */
+  /// @dev Throws if called by any account other than the owner.
   modifier onlyAdmin() {
     require(isAdmin(msg.sender), "Can be executed only by admin accounts!");
     _;

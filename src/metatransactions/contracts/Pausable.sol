@@ -3,36 +3,29 @@ pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/**
- * @title Pausable
- * @dev Base contract which allows children to implement an emergency stop mechanism for mainenance purposes
- */
+/// @title Pausable
+/// @notice Base contract which allows children to implement an emergency stop mechanism for maintainance purposes
 contract Pausable is Ownable {
   event Pause();
   event Unpause();
 
+  /// @notice Specifies whether the contract is paused at the moment
   bool public paused = false;
 
 
-  /**
-   * @dev modifier to allow actions only when the contract IS paused
-   */
+  /// @notice Modifier to allow actions only when the contract IS paused
   modifier whenNotPaused() {
     require(!paused);
     _;
   }
 
-  /**
-   * @dev modifier to allow actions only when the contract IS NOT paused
-   */
+  /// @notice Modifier to allow actions only when the contract IS NOT paused
   modifier whenPaused {
     require(paused);
     _;
   }
 
-  /**
-   * @dev called by the owner to pause, triggers stopped state
-   */
+  /// @notice Called by the owner to pause, triggers stopped state
   function pause()
     external
     onlyOwner
@@ -44,9 +37,7 @@ contract Pausable is Ownable {
     return true;
   }
 
-  /**
-   * @dev called by the owner to unpause, returns to normal state
-   */
+  /// @notice Called by the owner to unpause, returns to normal state
   function unpause()
     external
     onlyOwner
