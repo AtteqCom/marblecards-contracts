@@ -238,21 +238,21 @@ contract("MarbleCandidateTest", accounts => {
     it('creates candidate when payed with tokens', async () => {
       const uri = "https://solarsystem.nasa.gov/planets/earth/overview";
 
-      await bankContract.deposit(erc20Token.address, candidatePriceInToken + 10, "initial deposit")
+      await bankContract.deposit(erc20Token.address, candidatePriceInToken + 10, owner, "initial deposit")
       await candidateContract.createCandidateWithERC20(uri, erc20Token.address, { from: owner });
       const createdCandidate = await candidateContract.getCandidate(uri);
 
       assert.equal(createdCandidate.owner, owner, "Incorrect owner of the newly created candidate")
       assert.equal(createdCandidate.mintingPrice, candidatePriceInToken, "Incorrect price on the candidate")
       assert.equal(createdCandidate.uri, uri, "Incorrect uri of the candidate");
-      assert.equal(await bankContract.userBalance(erc20Token.address, { from: owner }), 10, "Incorrect balance on rick's bank account")
+      assert.equal(await bankContract.userBalance(erc20Token.address, owner, { from: owner }), 10, "Incorrect balance on rick's bank account")
       assert.equal(await erc20Token.balanceOf(candidateContract.address), candidatePriceInToken, "The paid tokens should be on candidate contract")
     })
 
     it('emits correct event when candidate is created', async () => {
       const uri = "https://solarsystem.nasa.gov/planets/mars/overview";
 
-      await bankContract.deposit(erc20Token.address, candidatePriceInToken * 3, "initial deposit")
+      await bankContract.deposit(erc20Token.address, candidatePriceInToken * 3, owner, "initial deposit")
       await candidateContract.createCandidateWithERC20(uri + "///", erc20Token.address);
       await candidateContract.createCandidateWithERC20(uri + "//", erc20Token.address);
       const result = await candidateContract.createCandidateWithERC20(uri, erc20Token.address);
@@ -266,7 +266,7 @@ contract("MarbleCandidateTest", accounts => {
     it("reverts when not enough funds in the bank", async () => {
       const uri = "https://solarsystem.nasa.gov/planets/jupiter/overview";
 
-      await bankContract.deposit(erc20Token.address, candidatePriceInToken - 1, "initial deposit")
+      await bankContract.deposit(erc20Token.address, candidatePriceInToken - 1, owner, "initial deposit")
       await truffleAssert.reverts(
         candidateContract.createCandidateWithERC20(uri, erc20Token.address),
         "Not enough tokens in the bank"
@@ -293,7 +293,7 @@ contract("MarbleCandidateTest", accounts => {
       const uri = "https://solarsystem.nasa.gov/planets/saturn/overview";
 
       await erc20Token.transfer(rick.account, 200, { from: owner })
-      await bankContract.deposit(erc20Token.address, candidatePriceInToken + 20, "initial deposit", { from: rick.account })
+      await bankContract.deposit(erc20Token.address, candidatePriceInToken + 20, rick.account, "initial deposit", { from: rick.account })
       await candidateContract.setMetatransactionsContract(owner)
       await candidateContract.createCandidateWithERC20ForUser(uri, erc20Token.address, rick.account, { from: owner });
       const createdCandidate = await candidateContract.getCandidate(uri);
@@ -301,7 +301,7 @@ contract("MarbleCandidateTest", accounts => {
       assert.equal(createdCandidate.owner, rick.account, "Incorrect owner of the newly created candidate")
       assert.equal(createdCandidate.mintingPrice, candidatePriceInToken, "Incorrect price on the candidate")
       assert.equal(createdCandidate.uri, uri, "Incorrect uri of the candidate");
-      assert.equal(await bankContract.userBalance(erc20Token.address, { from: rick.account }), 20, "Incorrect balance on rick's bank account")
+      assert.equal(await bankContract.userBalance(erc20Token.address, rick.account, { from: rick.account }), 20, "Incorrect balance on rick's bank account")
       assert.equal(await erc20Token.balanceOf(candidateContract.address), candidatePriceInToken, "The paid tokens should be on candidate contract")
     })
 
@@ -309,7 +309,7 @@ contract("MarbleCandidateTest", accounts => {
       const uri = "https://solarsystem.nasa.gov/planets/uranus/overview";
 
       await erc20Token.transfer(rick.account, 200, { from: owner })
-      await bankContract.deposit(erc20Token.address, candidatePriceInToken + 20, "initial deposit", { from: rick.account })
+      await bankContract.deposit(erc20Token.address, candidatePriceInToken + 20, rick.account, "initial deposit", { from: rick.account })
       await candidateContract.setMetatransactionsContract(owner)
       const result = await candidateContract.createCandidateWithERC20ForUser(uri, erc20Token.address, rick.account, { from: owner });
 
@@ -330,7 +330,7 @@ contract("MarbleCandidateTest", accounts => {
       const uri = "https://solarsystem.nasa.gov/planets/planetX/overview";
 
       await erc20Token.transfer(rick.account, 200, { from: owner })
-      await bankContract.deposit(erc20Token.address, candidatePriceInToken - 1, "initial deposit", { from: rick.account })
+      await bankContract.deposit(erc20Token.address, candidatePriceInToken - 1, rick.account, "initial deposit", { from: rick.account })
       await candidateContract.setMetatransactionsContract(owner)
       await truffleAssert.reverts(
         candidateContract.createCandidateWithERC20ForUser(uri, erc20Token.address, rick.account, { from: owner }),
