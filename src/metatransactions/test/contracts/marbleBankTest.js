@@ -49,6 +49,37 @@ contract("MarbleBank", accounts => {
     })
   })
 
+  describe("deposit function when depositing to someone else's account", () => {
+    it("correctly transfers the tokens", async () => {
+      const originalOwnerTokensAmount = (await erc20Token.balanceOf(owner)).toNumber();
+      const originalDemonhunterTokensAmount = (await erc20Token.balanceOf(demonhunter.account)).toNumber();
+      const depositAmount = 26;
+
+      await bankContract.deposit(erc20Token.address, depositAmount, demonhunter.account, "deposit");
+
+      assert.equal(await erc20Token.balanceOf(owner), originalOwnerTokensAmount - depositAmount)
+      assert.equal(await erc20Token.balanceOf(demonhunter.account), originalDemonhunterTokensAmount)
+      assert.equal(await erc20Token.balanceOf(bankContract.address), depositAmount);
+    })
+
+    it("emits correct event", async () => {
+      const depositAmount = 200;
+  
+      const response = await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, "deposit", { from: owner });
+  
+      truffleAssert.eventEmitted(response, 'Deposit', { transactionId: web3.utils.toBN(1), from: owner, to: dragonslayer.account, token: erc20Token.address, amount:  web3.utils.toBN(depositAmount) });
+    })
+
+    it("reverts when not enough tokens", async () => {
+      const balance = (await erc20Token.balanceOf(owner)).toNumber();
+      await truffleAssert.reverts(
+        bankContract.deposit(erc20Token.address, balance + 1, demonhunter.account, "deposit", { from: owner }), 
+        "Not enough tokens"
+      );
+    })
+
+  })
+
   describe("withdraw function", () => {
     it("actually transfers the tokens to owner", async () => {
       const originalTokensAmount = (await erc20Token.balanceOf(owner)).toNumber();
