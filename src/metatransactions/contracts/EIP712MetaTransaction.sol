@@ -28,7 +28,7 @@ contract EIP712MetaTransaction is EIP712Base {
     /**
      * @param transactionsFromChainId only transactions from this chain will be supported.
      */
-    constructor(string memory name, string memory version, uint transactionsFromChainId) public EIP712Base(name, version, transactionsFromChainId) {}
+    constructor(string memory name, string memory version, uint transactionsFromChainId) EIP712Base(name, version, transactionsFromChainId) {}
 
     function convertBytesToBytes4(bytes memory inBytes) pure internal returns (bytes4 outBytes4) {
         if (inBytes.length == 0) {

@@ -26,7 +26,7 @@ contract("MarbleBank", accounts => {
       const originalTokensAmount = (await erc20Token.balanceOf(owner)).toNumber();
       const depositAmount = 100;
 
-      await bankContract.deposit(erc20Token.address, depositAmount, "deposit");
+      await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
 
       assert.equal(await erc20Token.balanceOf(owner), originalTokensAmount - depositAmount);
       assert.equal(await erc20Token.balanceOf(bankContract.address), depositAmount);
@@ -35,15 +35,15 @@ contract("MarbleBank", accounts => {
     it("emits correct event", async () => {
       const depositAmount = 200;
   
-      const response = await bankContract.deposit(erc20Token.address, depositAmount, "deposit");
+      const response = await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
   
-      truffleAssert.eventEmitted(response, 'Deposit', { from: owner, token: erc20Token.address, amount:  web3.utils.toBN(depositAmount) });
+      truffleAssert.eventEmitted(response, 'Deposit', { transactionId: 1, from: owner, to: owner, token: erc20Token.address, amount:  web3.utils.toBN(depositAmount) });
     })
   
     it("reverts when not enough tokens", async () => {
       const balance = (await erc20Token.balanceOf(owner)).toNumber();
       await truffleAssert.reverts(
-        bankContract.deposit(erc20Token.address, balance + 1, "deposit"), 
+        bankContract.deposit(erc20Token.address, balance + 1, owner, "deposit"), 
         "Not enough tokens"
       );
     })
@@ -80,11 +80,11 @@ contract("MarbleBank", accounts => {
       const depositAmount = 45;
       const withdrawAmount = 20;
   
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
+      // to be correct, we shouldn't call this function, but mock the  bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, "deposit");
       const response = await bankContract.withdraw(erc20Token.address, withdrawAmount, "withdraw");
   
-      truffleAssert.eventEmitted(response, 'Withdrawal', { user: owner, token: erc20Token.address, amount:  web3.utils.toBN(withdrawAmount) });
+      truffleAssert.eventEmitted(response, 'Withdrawal', { transactionId: 2, user: owner, token: erc20Token.address, amount:  web3.utils.toBN(withdrawAmount) });
     })
   
     it("reverts when not enough tokens deposited", async () => {
@@ -132,7 +132,7 @@ contract("MarbleBank", accounts => {
       await bankContract.deposit(erc20Token.address, depositAmount, "deposit");
       const response = await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, "test payment");
   
-      truffleAssert.eventEmitted(response, 'Payment', { from: owner, to: dragonslayer.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount) });
+      truffleAssert.eventEmitted(response, 'Payment', { transactionId: 1, from: owner, to: dragonslayer.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount) });
     })
   
     it("reverts when not enough tokens deposited", async () => {
@@ -176,7 +176,7 @@ contract("MarbleBank", accounts => {
   
       const result = await bankContract.payByAffiliate(erc20Token.address, payAmount, dragonslayer.account, demonhunter.account, "pay by aff test");
   
-      truffleAssert.eventEmitted(result, 'Payment', { from: dragonslayer.account, to: demonhunter.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount) });
+      truffleAssert.eventEmitted(result, 'Payment', { transactionId: 2, from: dragonslayer.account, to: demonhunter.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount) });
     });
   
     it("reverts when not affiliate", async () => {
