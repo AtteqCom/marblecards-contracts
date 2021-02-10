@@ -6,7 +6,7 @@ const truffleAssert = require('truffle-assertions');
 
 const [dragonslayer, demonhunter] = require("../../../core/test/utils/actors.js");
 
-
+// TODO: missing tests for stored transactions
 contract("MarbleBank", accounts => {
   let bankContract;
   let erc20Token;
@@ -23,7 +23,7 @@ contract("MarbleBank", accounts => {
 
   describe("deposit function", () => {
     it("actually transfers the tokens", async () => {
-      const originalTokensAmount = (await erc20Token.balanceOf(owner)).toNumber();
+      const originalTokensAmount = (await erc20Token.balanceOf(owner));
       const depositAmount = 100;
 
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
@@ -34,16 +34,19 @@ contract("MarbleBank", accounts => {
   
     it("emits correct event", async () => {
       const depositAmount = 200;
+      const note = "deposit";
   
-      const response = await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
+      const response = await bankContract.deposit(erc20Token.address, depositAmount, owner, note);
   
-      truffleAssert.eventEmitted(response, 'Deposit', { transactionId: web3.utils.toBN(1), from: owner, to: owner, token: erc20Token.address, amount:  web3.utils.toBN(depositAmount) });
+      truffleAssert.eventEmitted(response, 'Deposit', { 
+        transactionId: web3.utils.toBN(1), from: owner, to: owner, token: erc20Token.address, amount: web3.utils.toBN(depositAmount), note 
+      });
     })
   
     it("reverts when not enough tokens", async () => {
-      const balance = (await erc20Token.balanceOf(owner)).toNumber();
+      const balance = (await erc20Token.balanceOf(owner));
       await truffleAssert.reverts(
-        bankContract.deposit(erc20Token.address, balance + 1, owner, "deposit"), 
+        bankContract.deposit(erc20Token.address, balance + 1 , owner, "deposit"), 
         "Not enough tokens"
       );
     })
@@ -51,27 +54,30 @@ contract("MarbleBank", accounts => {
 
   describe("deposit function when depositing to someone else's account", () => {
     it("correctly transfers the tokens", async () => {
-      const originalOwnerTokensAmount = (await erc20Token.balanceOf(owner)).toNumber();
-      const originalDemonhunterTokensAmount = (await erc20Token.balanceOf(demonhunter.account)).toNumber();
+      const originalOwnerTokensAmount = (await erc20Token.balanceOf(owner));
+      const originalDemonhunterTokensAmount = (await erc20Token.balanceOf(demonhunter.account));
       const depositAmount = 26;
 
       await bankContract.deposit(erc20Token.address, depositAmount, demonhunter.account, "deposit");
 
       assert.equal(await erc20Token.balanceOf(owner), originalOwnerTokensAmount - depositAmount)
-      assert.equal(await erc20Token.balanceOf(demonhunter.account), originalDemonhunterTokensAmount)
+      assert.equal((await erc20Token.balanceOf(demonhunter.account)).toNumber(), originalDemonhunterTokensAmount.toNumber())
       assert.equal(await erc20Token.balanceOf(bankContract.address), depositAmount);
     })
 
     it("emits correct event", async () => {
       const depositAmount = 200;
+      const note = "deposit";
   
-      const response = await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, "deposit", { from: owner });
+      const response = await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, note, { from: owner });
   
-      truffleAssert.eventEmitted(response, 'Deposit', { transactionId: web3.utils.toBN(1), from: owner, to: dragonslayer.account, token: erc20Token.address, amount:  web3.utils.toBN(depositAmount) });
+      truffleAssert.eventEmitted(response, 'Deposit', { 
+        transactionId: web3.utils.toBN(1), from: owner, to: dragonslayer.account, token: erc20Token.address, amount: web3.utils.toBN(depositAmount), note 
+      });
     })
 
     it("reverts when not enough tokens", async () => {
-      const balance = (await erc20Token.balanceOf(owner)).toNumber();
+      const balance = (await erc20Token.balanceOf(owner));
       await truffleAssert.reverts(
         bankContract.deposit(erc20Token.address, balance + 1, demonhunter.account, "deposit", { from: owner }), 
         "Not enough tokens"
@@ -82,11 +88,10 @@ contract("MarbleBank", accounts => {
 
   describe("withdraw function", () => {
     it("actually transfers the tokens to owner", async () => {
-      const originalTokensAmount = (await erc20Token.balanceOf(owner)).toNumber();
+      const originalTokensAmount = (await erc20Token.balanceOf(owner));
       const depositAmount = 10;
       const withdrawAmount = 5;
   
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
       await bankContract.withdraw(erc20Token.address, withdrawAmount, "withdraw");
   
@@ -95,11 +100,10 @@ contract("MarbleBank", accounts => {
     })
   
     it("actually transfers all tokens to the owner when all tokens are requested", async () => {
-      const originalTokensAmount = (await erc20Token.balanceOf(owner)).toNumber();
+      const originalTokensAmount = (await erc20Token.balanceOf(owner));
       const depositAmount = 17;
       const withdrawAmount = 17;
   
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
       await bankContract.withdraw(erc20Token.address, withdrawAmount, "withdraw");
   
@@ -110,19 +114,20 @@ contract("MarbleBank", accounts => {
     it("emits correct event", async () => {
       const depositAmount = 45;
       const withdrawAmount = 20;
+      const note = "withdraw";
   
-      // to be correct, we shouldn't call this function, but mock the  bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
-      const response = await bankContract.withdraw(erc20Token.address, withdrawAmount, "withdraw");
+      const response = await bankContract.withdraw(erc20Token.address, withdrawAmount, note);
   
-      truffleAssert.eventEmitted(response, 'Withdrawal', { transactionId: web3.utils.toBN(2), user: owner, token: erc20Token.address, amount:  web3.utils.toBN(withdrawAmount) });
+      truffleAssert.eventEmitted(response, 'Withdrawal', { 
+        transactionId: web3.utils.toBN(2), user: owner, token: erc20Token.address, amount: web3.utils.toBN(withdrawAmount), note 
+      });
     })
   
     it("reverts when not enough tokens deposited", async () => {
       const depositAmount = 50;
       const withdrawAmount = 51;
   
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
       await truffleAssert.reverts(
         bankContract.withdraw(erc20Token.address, withdrawAmount, "withdraw"), 
@@ -136,7 +141,6 @@ contract("MarbleBank", accounts => {
       const depositAmount = 32;
       const payAmount = 15;
   
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
       await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, "test payment");
   
@@ -147,7 +151,6 @@ contract("MarbleBank", accounts => {
     it("actually transfers all the tokens, when paying with all tokens", async () => {
       const amount = 125;
   
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, amount, owner, "deposit");
       await bankContract.pay(erc20Token.address, amount, dragonslayer.account, "test payment");
   
@@ -158,12 +161,14 @@ contract("MarbleBank", accounts => {
     it("emits correct event", async () => {
       const depositAmount = 20;
       const payAmount = 17;
+      const note = "test payment";
   
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
-      const response = await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, "test payment");
+      const response = await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, note);
   
-      truffleAssert.eventEmitted(response, 'Payment', { transactionId: web3.utils.toBN(2), from: owner, to: dragonslayer.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount) });
+      truffleAssert.eventEmitted(response, 'Payment', { 
+        transactionId: web3.utils.toBN(2), from: owner, to: dragonslayer.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount), note 
+      });
     })
   
     it("reverts when not enough tokens deposited", async () => {
@@ -186,7 +191,6 @@ contract("MarbleBank", accounts => {
       const payAmount = 12;
       await erc20Token.transfer(dragonslayer.account, originalAmount, { from: owner })
       await erc20Token.approve(bankContract.address, 10000000000000, { from: dragonslayer.account });
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, "deposit", { from: dragonslayer.account });
       await bankContract.addAffiliate(owner);
   
@@ -199,22 +203,23 @@ contract("MarbleBank", accounts => {
     it("emits correct event", async () => {
       const depositAmount = 40;
       const payAmount = 12;
+      const note = "pay by aff test";
       await erc20Token.transfer(dragonslayer.account, 100, { from: owner })
       await erc20Token.approve(bankContract.address, 10000000000000, { from: dragonslayer.account });
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, "deposit", { from: dragonslayer.account });
       await bankContract.addAffiliate(owner);
   
-      const result = await bankContract.payByAffiliate(erc20Token.address, payAmount, dragonslayer.account, demonhunter.account, "pay by aff test");
+      const result = await bankContract.payByAffiliate(erc20Token.address, payAmount, dragonslayer.account, demonhunter.account, note);
   
-      truffleAssert.eventEmitted(result, 'Payment', { transactionId: web3.utils.toBN(2), from: dragonslayer.account, to: demonhunter.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount) });
+      truffleAssert.eventEmitted(result, 'Payment', { 
+        transactionId: web3.utils.toBN(2), from: dragonslayer.account, to: demonhunter.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount), note
+      });
     });
   
     it("reverts when not affiliate", async () => {
       const depositAmount = 20;
       await erc20Token.transfer(dragonslayer.account, 100, { from: owner })
       await erc20Token.approve(bankContract.address, 10000000000000, { from: dragonslayer.account });
-      // to be correct, we shouldn't call this function, but mock the bank contract to think that the user has deposited the given amount
       await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, "deposit", { from: dragonslayer.account });
   
       await truffleAssert.reverts(

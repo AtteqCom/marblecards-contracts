@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract MetaCoin is ERC20 {
   constructor() ERC20("Meta coin", "MTC")
   {
-    _mint(msg.sender, 1000);
+    uint256 mtc = 1e18;
+    _mint(msg.sender, mtc * 10000);
   }
 }

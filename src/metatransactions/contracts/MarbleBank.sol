@@ -22,20 +22,23 @@ contract MarbleBank is MarbleBankInterface, Ownable
   /// @param to Address of the user whose account received the deposited tokens
   /// @param token Address of the token which was deposited
   /// @param amount Amount of the deposited tokens
-  event Deposit(uint256 transactionId, address from, address to, address token, uint256 amount);
+  /// @param note Description of the transaction
+  event Deposit(uint256 transactionId, address from, address to, address token, uint256 amount, string note);
   
   /// @notice Event emited when a user withdraws his tokens from the bank
   /// @param user Address of the user which withdrawn the tokens
   /// @param token Address of the token which was withdrawn
   /// @param amount Amount of the withdrawn tokens
-  event Withdrawal(uint256 transactionId, address user, address token, uint256 amount);
+  /// @param note Description of the transaction
+  event Withdrawal(uint256 transactionId, address user, address token, uint256 amount, string note);
 
   /// @notice Event emited when a payment in tokens occurs
   /// @param from Address of the paying user
   /// @param to Address of the user which received the payment
   /// @param token Address of the token in which the payment was executed
   /// @param amount Amount of the tokens transfered during the payment
-  event Payment(uint256 transactionId, address from, address to, address token, uint256 amount);
+  /// @param note Description of the transaction
+  event Payment(uint256 transactionId, address from, address to, address token, uint256 amount, string note);
   
   /// @notice Event emited when a new affiliate is added
   /// @param affiliate Address of the affiliate
@@ -86,7 +89,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     address userAddress;
     address tokenAddress;
     uint256 balance;
-    Transaction[] transactions;
+    uint256[] transactions;
     bool exists;
   }
 
@@ -109,7 +112,10 @@ contract MarbleBank is MarbleBankInterface, Ownable
   }
 
   /// @dev Maps user address to his account
-  mapping(address => UserAccount) accounts;
+  mapping(address => UserAccount) public accounts;
+
+  /// @dev Stores all the transactions executed on this contract
+  mapping(uint256 => Transaction) public transactions;
 
   /// @dev Stores last transaction's id so we can assign unique id to each transaction
   uint256 lastTransactionId = 0;
@@ -288,24 +294,15 @@ contract MarbleBank is MarbleBankInterface, Ownable
   function _deposit(address accountAddress, ERC20 token, uint256 amount, string memory note) 
     private 
   {
-    token.transferFrom(msg.sender, address(this), amount);
+    address sender = msg.sender;
+    token.transferFrom(sender, address(this), amount);
 
     accounts[accountAddress].tokenAccounts[address(token)].balance += amount;
     accounts[accountAddress].tokenAccounts[address(token)].transactions.push(
-      Transaction(
-        {
-          id: ++lastTransactionId,
-          from: msg.sender,
-          to: accountAddress,
-          token: address(token),
-          amount: amount,
-          note: note,
-          timestamp: block.timestamp
-        }
-      )
+      _createTransacion(sender, accountAddress, address(token), amount, note)
     );
     
-    emit Deposit(lastTransactionId, msg.sender, accountAddress, address(token), amount);
+    emit Deposit(lastTransactionId, sender, accountAddress, address(token), amount, note);
   }
 
   /// @dev Executes payment from specified user's account to the specified user. It transfers toknes from the bank to the user and decreases balance of the paying user
@@ -322,20 +319,10 @@ contract MarbleBank is MarbleBankInterface, Ownable
     token.transfer(to, amount);
     userTokenAccount.balance -= amount;
     userTokenAccount.transactions.push(
-      Transaction(
-        {
-          id: ++lastTransactionId,
-          from: from,
-          to: to,
-          token: address(token),
-          amount: amount,
-          note: note,
-          timestamp: block.timestamp
-        }
-      )
+      _createTransacion(from, to, address(token), amount, note)
     );
 
-    emit Payment(lastTransactionId, from, to, address(token), amount);
+    emit Payment(lastTransactionId, from, to, address(token), amount, note);
   }
 
   /// @dev Withdraws tokens from the given account. It transfers the tokens from the bank to the user address and decreases the balance on the account
@@ -351,20 +338,37 @@ contract MarbleBank is MarbleBankInterface, Ownable
     token.transfer(user, amount);
     userTokenAccount.balance -= amount;
     userTokenAccount.transactions.push(
-      Transaction(
-        {
-          id: ++lastTransactionId,
-          from: address(this),
-          to: user,
-          token: address(token),
-          amount: amount,
-          note: note,
-          timestamp: block.timestamp
-        }
-      )
+      _createTransacion(address(this), user, address(token), amount, note)
     );
 
-    emit Withdrawal(lastTransactionId, user, address(token), amount);
+    emit Withdrawal(lastTransactionId, user, address(token), amount, note);
+  }
+
+  /// @dev Creates and stores new transaction entry and increases the transactions counter (lastTransactionId)
+  /// @param from Address from which's account the tokens are transfered
+  /// @param to Address which receives the tokens
+  /// @param token Address of the transfered token
+  /// @param amount Amount of the transfered tokens
+  /// @param note Description of the bank transaction
+  /// @return transacionId Id of the bank transaction
+  function _createTransacion(address from, address to, address token, uint256 amount, string memory note) 
+    private 
+    returns (uint256 transacionId)
+  {
+    uint256 transactionId = ++lastTransactionId;
+    transactions[transactionId] = Transaction(
+      {
+        id: transacionId,
+        from: from,
+        to: to,
+        token: token,
+        amount: amount,
+        note: note,
+        timestamp: block.timestamp
+      }
+    );
+
+    return transactionId;
   }
 
   /// @dev Checks the amount of tokens stored in the given account
