@@ -6,22 +6,28 @@ import "./EIP712MetaTransaction.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 
-/// @dev Interface of the MarbleNFT contarct so that we can easily work with it
+/// @dev Partial interface of the MarbleNFT contract so that we can easily work with it
 abstract contract MarbleNFT {
   function forceApproval(uint256 _tokenId, address _approved) external virtual;
   function safeTransferFrom(address from, address to, uint256 tokenId) external virtual;
   function transferFrom(address from, address to, uint256 tokenId) external virtual;
 }
 
-/// @dev Interface of the MarbleNFTCandidate contarct so that we can easily work with it
+/// @dev Partial interface of the MarbleNFTCandidate contract so that we can easily work with it
 abstract contract MarbleNFTCandidate {
-    function createCandidateWithERC20ForUser(string calldata _uri, address _erc20, address _owner) external virtual returns(uint256 index);
+  MarbleBank public erc20Bank;
+  function createCandidateWithERC20ForUser(string calldata _uri, address _erc20, address _owner) external virtual returns(uint256 index);
 }
 
-/// @dev Interface of the MarbleNFTFactory contarct so that we can easily work with it
+/// @dev Partial interface of the MarbleNFTFactory contract so that we can easily work with it
 abstract contract MarbleNFTFactory {
   MarbleNFT public marbleNFTContract;
   MarbleNFTCandidate public marbleNFTCandidateContract;
+}
+
+/// @dev Partial interface of the MarbleBank contract so that we can easily work with it
+abstract contract MarbleBank {
+  function payByAffiliate(address token, uint256 amount, address from, address to, string memory note) external virtual;
 }
 
 
@@ -40,6 +46,15 @@ interface MarbleMetatransactionsInterface {
   /// @param uri Uri of the candidate
   /// @param erc20Token Address of the token in which the candidate creation should be paid
   function createPageCandidateWithERC20(string calldata uri, address erc20Token) 
+    external;
+
+  /// @notice Executes payment transaction on bank contract
+  /// @dev The bank contract used is taken from the page candidate
+  /// @param erc20Token Address of the token of the payment
+  /// @param amount Amount of tokens t o be paid
+  /// @param to Address to which the payment shold be sent
+  /// @param note Note for the bank transaction
+  function executeBankPayment(address erc20Token, uint256 amount, address to, string calldata note)
     external;
 
   /// @notice Transfer NFT to another address

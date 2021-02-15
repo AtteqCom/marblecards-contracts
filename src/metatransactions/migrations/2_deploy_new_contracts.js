@@ -24,6 +24,7 @@ module.exports = async function(deployer) {
   await candidate.setMetatransactionsContract(metatransactions.address)
   await candidate.setMinimalPrice(mintingPriceEth)
   await bank.addAffiliate(candidate.address);
+  await bank.addAffiliate(metatransactions.address);
   
   // TODO: factory->setCandidate(candidate)
   // TODO: candidate->setTokenPrice(token, price)

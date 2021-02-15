@@ -42,6 +42,21 @@ contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactions
     marbleNFTFactoryContract.marbleNFTCandidateContract().createCandidateWithERC20ForUser(uri, erc20Token, issuer);
   }
 
+  /// @notice Executes payment transaction on bank contract
+  /// @dev The bank contract used is taken from the page candidate
+  /// @param erc20Token Address of the token of the payment
+  /// @param amount Amount of tokens t o be paid
+  /// @param to Address to which the payment shold be sent
+  /// @param note Note for the bank transaction
+  function executeBankPayment(address erc20Token, uint256 amount, address to, string calldata note)
+    override
+    external
+  {
+    address sender = msgSender();
+    MarbleBank bank = marbleNFTFactoryContract.marbleNFTCandidateContract().erc20Bank();
+    bank.payByAffiliate(erc20Token, amount, sender, to, note);
+  }
+
   /// @notice Transfer NFT to another address
   /// @dev Transfers nft from its current owner to new owner. This requires that this contract is admin of the NFT contract and that the signer owns the given token
   /// @param toAddress Address of the new owner of the NFT
