@@ -11,9 +11,11 @@ import "./MarbleBankInterface.sol";
 contract MarbleBank is MarbleBankInterface, Ownable 
 {
 
+  string constant REVERT_TO_NULL_ADDRESS = "Transaction to null address";
   string constant REVERT_NOT_ENOUGH_TOKENS = "Not enough tokens";
   string constant REVERT_USER_ACCOUNT_DOES_NOT_EXIST = "User account does not exist";
   string constant REVERT_USER_DOES_NOT_HAVE_ACCOUNT_FOR_TOKEN = "Token account for the given user does not exist";
+  string constant REVERT_AFFILIATE_NULL_ADDRESS = "Null address cannot be affiliate";
   string constant REVERT_USER_NOT_AFFILIATE = "User is not affiliate";
   string constant REVERT_USER_IS_AFFILIATE = "User is affiliate";
 
@@ -35,10 +37,11 @@ contract MarbleBank is MarbleBankInterface, Ownable
   /// @notice Event emited when a payment in tokens occurs
   /// @param from Address of the paying user
   /// @param to Address of the user which received the payment
+  /// @param affiliate Address of the affiliate who executed the transaction
   /// @param token Address of the token in which the payment was executed
   /// @param amount Amount of the tokens transfered during the payment
   /// @param note Description of the transaction
-  event Payment(uint256 transactionId, address from, address to, address token, uint256 amount, string note);
+  event Payment(uint256 transactionId, address from, address to, address affiliate, address token, uint256 amount, string note);
   
   /// @notice Event emited when a new affiliate is added
   /// @param affiliate Address of the affiliate
@@ -52,6 +55,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
   /// @param id Unique identifier of the transaction
   /// @param from Address of the user from whose account tokens were transfered
   /// @param to Address of the user to whom the tokens were transfered
+  /// @param affiliateExecuted Address of the affiliate who executed the transaction
   /// @param token Address of the tokens which were transfered
   /// @param amount Amount of the transfered tokens
   /// @param note Each transaction must contain a note describing the transaction
@@ -61,6 +65,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     uint256 id;
     address from;
     address to;
+    address affiliateExecuted;
     address token;
     uint256 amount;
     string note;
@@ -133,6 +138,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     override 
     external 
   {
+    require(to != address(0), REVERT_TO_NULL_ADDRESS);
     require(token.balanceOf(msg.sender) >= amount, REVERT_NOT_ENOUGH_TOKENS);
     _createUserTokenAccountIfDoesntExist(to, token);
     _deposit(to, token, amount, note);
@@ -164,8 +170,9 @@ contract MarbleBank is MarbleBankInterface, Ownable
     external 
     hasTokenAccount(msg.sender, address(token)) 
   {
+    require(to != address(0), REVERT_TO_NULL_ADDRESS);
     require(_userBalance(msg.sender, token) >= amount, REVERT_NOT_ENOUGH_TOKENS);
-    _pay(msg.sender, to, token, amount, note);
+    _pay(msg.sender, to, address(0), token, amount, note);
   }
 
   /// @notice Execute payment by affiliate on behalf of a user
@@ -181,8 +188,9 @@ contract MarbleBank is MarbleBankInterface, Ownable
     mustBeAffiliate(msg.sender) 
     hasTokenAccount(from, address(token)) 
   {
+    require(to != address(0), REVERT_TO_NULL_ADDRESS);
     require(_userBalance(from, token) >= amount, REVERT_NOT_ENOUGH_TOKENS);
-    _pay(from, to, token, amount, note);
+    _pay(from, to, msg.sender, token, amount, note);
   }
 
   /// @notice Checks whether the specified user has specified amount of tokens
@@ -231,6 +239,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     external 
     onlyOwner 
   {
+    require(newAffiliate != address(0), REVERT_AFFILIATE_NULL_ADDRESS);
     require(!affiliates[newAffiliate], REVERT_USER_IS_AFFILIATE);
     affiliates[newAffiliate] = true;
 
@@ -299,7 +308,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
 
     accounts[accountAddress].tokenAccounts[address(token)].balance += amount;
     accounts[accountAddress].tokenAccounts[address(token)].transactions.push(
-      _createTransacion(sender, accountAddress, address(token), amount, note)
+      _createTransaction(sender, accountAddress, address(0), address(token), amount, note)
     );
     
     emit Deposit(lastTransactionId, sender, accountAddress, address(token), amount, note);
@@ -308,10 +317,11 @@ contract MarbleBank is MarbleBankInterface, Ownable
   /// @dev Executes payment from specified user's account to the specified user. It transfers toknes from the bank to the user and decreases balance of the paying user
   /// @param from Address of the user from whose account the tokens will be transfered
   /// @param to Address where the tokens are to be transfered
+  /// @param paidByAffiliate Address of the affiliate who executed the transaction
   /// @param token Address of the tokens which are to be transfered
   /// @param amount Amount of the tokens to be transfered
   /// @param note Note for the bank transaction
-  function _pay(address from, address to, ERC20 token, uint256 amount, string memory note) 
+  function _pay(address from, address to, address paidByAffiliate, ERC20 token, uint256 amount, string memory note) 
     private 
   {
     UserTokenAccount storage userTokenAccount = accounts[from].tokenAccounts[address(token)];
@@ -319,10 +329,10 @@ contract MarbleBank is MarbleBankInterface, Ownable
     token.transfer(to, amount);
     userTokenAccount.balance -= amount;
     userTokenAccount.transactions.push(
-      _createTransacion(from, to, address(token), amount, note)
+      _createTransaction(from, to, paidByAffiliate, address(token), amount, note)
     );
 
-    emit Payment(lastTransactionId, from, to, address(token), amount, note);
+    emit Payment(lastTransactionId, from, to, paidByAffiliate, address(token), amount, note);
   }
 
   /// @dev Withdraws tokens from the given account. It transfers the tokens from the bank to the user address and decreases the balance on the account
@@ -338,7 +348,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     token.transfer(user, amount);
     userTokenAccount.balance -= amount;
     userTokenAccount.transactions.push(
-      _createTransacion(address(this), user, address(token), amount, note)
+      _createTransaction(address(this), user, address(0), address(token), amount, note)
     );
 
     emit Withdrawal(lastTransactionId, user, address(token), amount, note);
@@ -347,11 +357,12 @@ contract MarbleBank is MarbleBankInterface, Ownable
   /// @dev Creates and stores new transaction entry and increases the transactions counter (lastTransactionId)
   /// @param from Address from which's account the tokens are transfered
   /// @param to Address which receives the tokens
+  /// @param affiliateExecuted Address of the affiliate who executed the transaction
   /// @param token Address of the transfered token
   /// @param amount Amount of the transfered tokens
   /// @param note Description of the bank transaction
   /// @return transacionId Id of the bank transaction
-  function _createTransacion(address from, address to, address token, uint256 amount, string memory note) 
+  function _createTransaction(address from, address to, address affiliateExecuted, address token, uint256 amount, string memory note) 
     private 
     returns (uint256 transacionId)
   {
@@ -361,6 +372,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
         id: transacionId,
         from: from,
         to: to,
+        affiliateExecuted: affiliateExecuted,
         token: token,
         amount: amount,
         note: note,

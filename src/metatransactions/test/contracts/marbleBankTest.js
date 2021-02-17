@@ -6,7 +6,8 @@ const truffleAssert = require('truffle-assertions');
 
 const [dragonslayer, demonhunter] = require("../../../core/test/utils/actors.js");
 
-// TODO: missing tests for stored transactions
+const zeroAddress = '0x0000000000000000000000000000000000000000';
+
 contract("MarbleBank", accounts => {
   let bankContract;
   let erc20Token;
@@ -43,6 +44,15 @@ contract("MarbleBank", accounts => {
       });
     })
   
+    it("reverts on deposit to null address", async () => {
+      const depositAmount = 100;
+
+      await truffleAssert.reverts(
+        bankContract.deposit(erc20Token.address, depositAmount, zeroAddress, "deposit"),
+        "Transaction to null address",
+      )
+    });
+
     it("reverts when not enough tokens", async () => {
       const balance = (await erc20Token.balanceOf(owner));
       await truffleAssert.reverts(
@@ -167,9 +177,19 @@ contract("MarbleBank", accounts => {
       const response = await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, note);
   
       truffleAssert.eventEmitted(response, 'Payment', { 
-        transactionId: web3.utils.toBN(2), from: owner, to: dragonslayer.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount), note 
+        transactionId: web3.utils.toBN(2), from: owner, to: dragonslayer.account, token: erc20Token.address, 
+        amount: web3.utils.toBN(payAmount), note, affiliate: zeroAddress,
       });
     })
+
+    it("reverts on pay to null address", async () => {
+      await bankContract.deposit(erc20Token.address, 1, owner, "deposit");
+
+      await truffleAssert.reverts(
+        bankContract.pay(erc20Token.address, 1, zeroAddress, "test payment"), 
+        "Transaction to null address"
+      );
+    });
   
     it("reverts when not enough tokens deposited", async () => {
       const depositAmount = 20;
@@ -212,8 +232,39 @@ contract("MarbleBank", accounts => {
       const result = await bankContract.payByAffiliate(erc20Token.address, payAmount, dragonslayer.account, demonhunter.account, note);
   
       truffleAssert.eventEmitted(result, 'Payment', { 
-        transactionId: web3.utils.toBN(2), from: dragonslayer.account, to: demonhunter.account, token: erc20Token.address, amount: web3.utils.toBN(payAmount), note
+        transactionId: web3.utils.toBN(2), from: dragonslayer.account, to: demonhunter.account, token: erc20Token.address, 
+        amount: web3.utils.toBN(payAmount), note, affiliate: owner
       });
+    });
+
+    it("reverts on pay to null address", async () => {
+      const depositAmount = 40;
+      const payAmount = 12;
+      const note = "pay by aff test";
+      await erc20Token.transfer(dragonslayer.account, 100, { from: owner })
+      await erc20Token.approve(bankContract.address, 10000000000000, { from: dragonslayer.account });
+      await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, "deposit", { from: dragonslayer.account });
+      await bankContract.addAffiliate(owner);
+  
+      await truffleAssert.reverts(
+        bankContract.payByAffiliate(erc20Token.address, payAmount, dragonslayer.account, zeroAddress, note), 
+        "Transaction to null address"
+      );
+    });
+
+    it("reverts on pay from null address", async () => {
+      const depositAmount = 40;
+      const payAmount = 12;
+      const note = "pay by aff test";
+      await erc20Token.transfer(dragonslayer.account, 100, { from: owner })
+      await erc20Token.approve(bankContract.address, 10000000000000, { from: dragonslayer.account });
+      await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, "deposit", { from: dragonslayer.account });
+      await bankContract.addAffiliate(owner);
+  
+      await truffleAssert.reverts(
+        bankContract.payByAffiliate(erc20Token.address, payAmount, zeroAddress, demonhunter.account, note), 
+        "User account does not exist"
+      );
     });
   
     it("reverts when not affiliate", async () => {
@@ -315,6 +366,13 @@ contract("MarbleBank", accounts => {
     it("emits correct event", async () => {
       const result = await bankContract.addAffiliate(dragonslayer.account);
       truffleAssert.eventEmitted(result, "AffiliateAdded", { affiliate: dragonslayer.account });
+    })
+
+    it("reverts null address", async () => {
+      await truffleAssert.reverts(
+        bankContract.addAffiliate(zeroAddress),
+        "Null address cannot be affiliate"
+      );
     })
 
     it("reverts when already affiliate", async () => {
