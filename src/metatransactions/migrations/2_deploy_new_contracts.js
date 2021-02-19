@@ -1,6 +1,7 @@
 const MarbleMetatransactions = artifacts.require("./MarbleMetatransactions.sol");
 const MarbleCandidate = artifacts.require("./MarbleNFTCandidate.sol");
 const MarbleBank = artifacts.require("./MarbleBank.sol");
+const RmbcSeller = artifacts.require('./RmbcSeller.sol');
 
 const config = require('../config');
 
@@ -15,6 +16,7 @@ module.exports = async function(deployer) {
   await deployer.deploy(MarbleMetatransactions, factoryContractAddress, metatransactionsChain);
   await deployer.deploy(MarbleCandidate);
   await deployer.deploy(MarbleBank);
+  await deployer.deploy(RmbcSeller);
 
   const metatransactions = await MarbleMetatransactions.deployed();
   const candidate = await MarbleCandidate.deployed();
