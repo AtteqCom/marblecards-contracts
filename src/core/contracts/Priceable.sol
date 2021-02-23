@@ -1,6 +1,4 @@
 pragma solidity ^0.4.24;
-
-
 import "@0xcert/ethereum-utils/contracts/math/SafeMath.sol";
 import "@0xcert/ethereum-utils/contracts/ownership/Claimable.sol";
 
