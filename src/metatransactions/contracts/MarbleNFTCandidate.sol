@@ -37,6 +37,11 @@ contract MarbleNFTCandidate is
   /// @param createdTimestamp Timestamp when the candidate was created
   event CandidateCreated(uint256 index, address owner, uint256 mintingPrice, address paidInToken, string uri, uint256 createdTimestamp);
 
+  /// @notice Event thrown when minimal minting price changed
+  /// @param mintingPrice New minting price in wei
+  /// @param tokenAddress Address of the token, whose price changed. Zero address if ETH price is changed
+  event MinimalMintingPriceChanged(uint256 mintingPrice, address tokenAddress);
+
   /// @dev Structure representing a candidate
   /// @param index Index of the candidate
   /// @param owner Possible NFT creator
@@ -140,6 +145,7 @@ contract MarbleNFTCandidate is
     onlyAdmin 
   {
     minimalMintingPriceInToken[token] = price;
+    emit MinimalMintingPriceChanged(price, token);
   }
 
   /// @notice Sets minimal price for creating Marble NFT Candidate
@@ -150,6 +156,7 @@ contract MarbleNFTCandidate is
     onlyAdmin
   {
     minimalMintingPrice = _minimalMintingPrice;
+    emit MinimalMintingPriceChanged(_minimalMintingPrice, address(0));
   }
 
   /// @notice Sets the metatransactions contract

@@ -355,7 +355,7 @@ contract("MarbleCandidateTest", accounts => {
       await candidateContract.withdrawTokens(erc20Token.address, { from: owner });
       const ownerTokensAfter = await erc20Token.balanceOf(owner);
 
-      assert.equal(ownerTokensAfter - ownerTokensBefore, tokensAmount, "All tokens from the candidate contract should be transfered to the owner.")
+      assert.equal(ownerTokensAfter.sub(ownerTokensBefore), tokensAmount, "All tokens from the candidate contract should be transfered to the owner.")
     })
 
     it('reverts when not owner is trying to withdraw', async () => {
@@ -366,6 +366,35 @@ contract("MarbleCandidateTest", accounts => {
         candidateContract.withdrawTokens(erc20Token.address, { from: morty.account })
       )
     })
+  })
+
+  describe('changing minimal minting emits event', () => {
+
+    before(async () => {
+      candidateContract = await MarbleNFTCandidate.new();
+      erc20Token = await ERC20Token.new();
+    });
+
+    it('emits correct event when ETH price is changed', async () => {
+      const price = 2151351;
+
+      const result = await candidateContract.setMinimalPrice(price, { from: owner });
+
+      truffleAssert.eventEmitted(result, 'MinimalMintingPriceChanged', 
+        { mintingPrice: web3.utils.toBN(price), tokenAddress: zeroAddress }
+      );      
+    })
+
+    it('emits correct event when token price is changed', async () => {
+      const price = 2151351;
+
+      const result = await candidateContract.setMinimalMintingPriceInToken(erc20Token.address, price)
+
+      truffleAssert.eventEmitted(result, 'MinimalMintingPriceChanged', 
+        { mintingPrice: web3.utils.toBN(price), tokenAddress: erc20Token.address }
+      );      
+    })
+
   })
 
 });

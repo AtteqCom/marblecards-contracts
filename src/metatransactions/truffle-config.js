@@ -36,6 +36,10 @@ module.exports = {
         new HDWalletProvider(process.env.WALLET_MNEMONIC, "https://ropsten.infura.io/v3/" + process.env.INFURA_KEY, 0, 6),
       network_id: '3'
     },
+    infuraGoerli: {
+      provider: () => new HDWalletProvider(process.env.WALLET_MNEMONIC, "https://goerli.infura.io/v3/" + process.env.INFURA_KEY, 0, 6),
+      network_id: '5'
+    },
     infuraRopstenTest: {
       // must be a web3-1.0.0, otherwise truffle commands may hang in CI
       provider: () =>
