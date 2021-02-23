@@ -29,7 +29,7 @@ There is no exposed ports. All we need is located over linked volumes.
 
 3. Use truffle to build it. Result will be in *~/build/contracts* folder.
     ```
-    cd core
+    cd original
     npx truffle compile
     cd ../metatransactions
     npx truffle compile
@@ -137,7 +137,7 @@ To deploy contract over Ropsten network we have to set up account over geth node
 3. Deploy mumbai contracts
     ```
     docker-compose exec builder bash
-    cd ./core
+    cd ./original
     npx truffle migrate --network mumbai
     cd ../metatransations
     npx truffle migrate --network mumbai

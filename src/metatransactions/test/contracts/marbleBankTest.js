@@ -1,10 +1,10 @@
 const MarbleBank = artifacts.require("./MarbleBank.sol");
 const ERC20 = artifacts.require("./MetaCoin.sol");
 
-const logger = require('../../../core/test/utils/logger');
+const logger = require('../../../original/test/utils/logger');
 const truffleAssert = require('truffle-assertions');
 
-const [dragonslayer, demonhunter] = require("../../../core/test/utils/actors.js");
+const [dragonslayer, demonhunter] = require("../../../original/test/utils/actors.js");
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 
