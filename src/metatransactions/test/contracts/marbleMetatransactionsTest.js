@@ -1,70 +1,173 @@
-// const MarbleMetatransactions = artifacts.require("./MarbleMetatransactions.sol");
+const MarbleNFTFactory = artifacts.require("./MarbleNFTFactoryPartial.sol");
+const MarbleNFTCandidate = artifacts.require("./MarbleNFTCandidate.sol");
+const MarbleBank = artifacts.require("./MarbleBank.sol");
+const MarbleMetatransactions = artifacts.require("./MarbleMetatransactions.sol");
+const ERC20 = artifacts.require("./MetaCoin.sol");
 
-// const MarbleNFTFactory = artifacts.require("MarbleNFTFactory");
-// const waffle = require('ethereum-waffle');
+const truffleAssert = require('truffle-assertions');
+const assertResponse = require('../utils/assertResponse');
 
-// // const MarbleNFTFactoryAbi = require("../../externalABI/marbleNFTFactory.abi.js");
+const [james, lars] = require("../utils/actors.js");
 
-// const MarbleNFT = artifacts.require("MarbleNFT");
-
-// const Doppelganger = require('ethereum-doppelganger');
-// // import Doppelganger from 'ethereum-doppelganger';
-// // const ERC20 = artifacts.require("./ERC20Token.sol");
-
-// const logger = require('../utils/logger');
-// const truffleAssert = require('truffle-assertions');
-
-// // const [dragonslayer, demonhunter] = require("../utils/actors.js");
+const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 
-// contract("MarbleMetatransactions", accounts => {
+contract("MarbleMetatransactions", accounts => {
   
-//   let erc20Token;
-//   let metatransactionsContract;
+  let bankContract;
+  let candidateContract;
+  let factoryContract;
+  let erc20Token;
+  let metatransactionsContract;
 
-//   let mockFactoryContract;
-//   let marbleNFTFactoryAbi = [  {    "constant": true,    "inputs": [      {        "name": "_interfaceID",        "type": "bytes4"      }    ],    "name": "supportsInterface",    "outputs": [      {        "name": "",        "type": "bool"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": true,    "inputs": [      {        "name": "",        "type": "uint256"      }    ],    "name": "adminList",    "outputs": [      {        "name": "",        "type": "address"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": false,    "inputs": [      {        "name": "adminAddress",        "type": "address"      }    ],    "name": "removeAdmin",    "outputs": [      {        "name": "index",        "type": "uint256"      }    ],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": true,    "inputs": [      {        "name": "adminAddress",        "type": "address"      }    ],    "name": "isAdmin",    "outputs": [      {        "name": "isIndeed",        "type": "bool"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": true,    "inputs": [],    "name": "marbleNFTCandidateContract",    "outputs": [      {        "name": "",        "type": "address"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": false,    "inputs": [],    "name": "unpause",    "outputs": [      {        "name": "",        "type": "bool"      }    ],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": false,    "inputs": [],    "name": "claimOwnership",    "outputs": [],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": true,    "inputs": [],    "name": "paused",    "outputs": [      {        "name": "",        "type": "bool"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": true,    "inputs": [],    "name": "marbleNFTContract",    "outputs": [      {        "name": "",        "type": "address"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": false,    "inputs": [      {        "name": "adminAddress",        "type": "address"      }    ],    "name": "addAdmin",    "outputs": [      {        "name": "index",        "type": "uint256"      }    ],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": false,    "inputs": [],    "name": "pause",    "outputs": [      {        "name": "",        "type": "bool"      }    ],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": true,    "inputs": [],    "name": "owner",    "outputs": [      {        "name": "",        "type": "address"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": true,    "inputs": [],    "name": "marbleDutchAuctionContract",    "outputs": [      {        "name": "",        "type": "address"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": true,    "inputs": [],    "name": "lastMintedNFTId",    "outputs": [      {        "name": "",        "type": "uint256"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": true,    "inputs": [],    "name": "pendingOwner",    "outputs": [      {        "name": "",        "type": "address"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": true,    "inputs": [      {        "name": "",        "type": "address"      }    ],    "name": "adminsMap",    "outputs": [      {        "name": "",        "type": "uint256"      }    ],    "payable": false,    "stateMutability": "view",    "type": "function"  },  {    "constant": false,    "inputs": [      {        "name": "_newOwner",        "type": "address"      }    ],    "name": "transferOwnership",    "outputs": [],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "inputs": [      {        "name": "_lastMintedNFTId",        "type": "uint256"      }    ],    "payable": false,    "stateMutability": "nonpayable",    "type": "constructor"  },  {    "anonymous": false,    "inputs": [      {        "indexed": true,        "name": "_creator",        "type": "address"      },      {        "indexed": true,        "name": "_tokenId",        "type": "uint256"      }    ],    "name": "MarbleNFTCreated",    "type": "event"  },  {    "anonymous": false,    "inputs": [      {        "indexed": true,        "name": "_tokenId",        "type": "uint256"      },      {        "indexed": true,        "name": "_owner",        "type": "address"      },      {        "indexed": true,        "name": "_creator",        "type": "address"      }    ],    "name": "MarbleNFTBurned",    "type": "event"  },  {    "anonymous": false,    "inputs": [],    "name": "Pause",    "type": "event"  },  {    "anonymous": false,    "inputs": [],    "name": "Unpause",    "type": "event"  },  {    "anonymous": false,    "inputs": [      {        "indexed": true,        "name": "previousOwner",        "type": "address"      },      {        "indexed": true,        "name": "newOwner",        "type": "address"      }    ],    "name": "OwnershipTransferred",    "type": "event"  },  {    "constant": false,    "inputs": [      {        "name": "_lastMintedNFTId",        "type": "uint256"      }    ],    "name": "setLastMintedNFTId",    "outputs": [],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": false,    "inputs": [      {        "name": "_address",        "type": "address"      }    ],    "name": "setMarbleDutchAuctionContract",    "outputs": [],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": false,    "inputs": [      {        "name": "_address",        "type": "address"      }    ],    "name": "setNFTContract",    "outputs": [],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": false,    "inputs": [      {        "name": "_address",        "type": "address"      }    ],    "name": "setCandidateContract",    "outputs": [],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": false,    "inputs": [      {        "name": "_uri",        "type": "string"      },      {        "name": "_metadataUri",        "type": "string"      },      {        "name": "_candidateUri",        "type": "string"      },      {        "name": "_auctionStartingPrice",        "type": "uint256"      },      {        "name": "_auctionMinimalPrice",        "type": "uint256"      },      {        "name": "_auctionDuration",        "type": "uint256"      }    ],    "name": "mint",    "outputs": [],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  },  {    "constant": false,    "inputs": [      {        "name": "_tokenId",        "type": "uint256"      }    ],    "name": "burn",    "outputs": [],    "payable": false,    "stateMutability": "nonpayable",    "type": "function"  }];
+  const owner = accounts[0];
+  const candidatePrice = 100;
+  const ownerBankInitialBalance = 100000;
+  const jamesBankInitialBalance = 10000;
+  const larsBankInitialBalance = 10;
 
-//   let mockNftContract;
-//   let marbleNFTAbi = `[    {      "constant": true,      "inputs": [        {          "name": "_interfaceID",          "type": "bytes4"        }      ],      "name": "supportsInterface",      "outputs": [        {          "name": "",          "type": "bool"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [],      "name": "name",      "outputs": [        {          "name": "_name",          "type": "string"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "getApproved",      "outputs": [        {          "name": "",          "type": "address"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "_approved",          "type": "address"        },        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "approve",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "",          "type": "uint256"        }      ],      "name": "adminList",      "outputs": [        {          "name": "",          "type": "address"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "adminAddress",          "type": "address"        }      ],      "name": "removeAdmin",      "outputs": [        {          "name": "index",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": true,      "inputs": [],      "name": "totalSupply",      "outputs": [        {          "name": "",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "_from",          "type": "address"        },        {          "name": "_to",          "type": "address"        },        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "transferFrom",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "adminAddress",          "type": "address"        }      ],      "name": "isAdmin",      "outputs": [        {          "name": "isIndeed",          "type": "bool"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "",          "type": "uint256"        }      ],      "name": "sourceUriHashToId",      "outputs": [        {          "name": "",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_owner",          "type": "address"        },        {          "name": "_index",          "type": "uint256"        }      ],      "name": "tokenOfOwnerByIndex",      "outputs": [        {          "name": "",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "_from",          "type": "address"        },        {          "name": "_to",          "type": "address"        },        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "safeTransferFrom",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": false,      "inputs": [],      "name": "claimOwnership",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_index",          "type": "uint256"        }      ],      "name": "tokenByIndex",      "outputs": [        {          "name": "",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "ownerOf",      "outputs": [        {          "name": "_owner",          "type": "address"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "",          "type": "uint256"        }      ],      "name": "idToMarbleNFTSource",      "outputs": [        {          "name": "uri",          "type": "string"        },        {          "name": "creator",          "type": "address"        },        {          "name": "created",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "adminAddress",          "type": "address"        }      ],      "name": "addAdmin",      "outputs": [        {          "name": "index",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_owner",          "type": "address"        }      ],      "name": "balanceOf",      "outputs": [        {          "name": "",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [],      "name": "owner",      "outputs": [        {          "name": "",          "type": "address"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [],      "name": "symbol",      "outputs": [        {          "name": "_symbol",          "type": "string"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "_operator",          "type": "address"        },        {          "name": "_approved",          "type": "bool"        }      ],      "name": "setApprovalForAll",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "_from",          "type": "address"        },        {          "name": "_to",          "type": "address"        },        {          "name": "_tokenId",          "type": "uint256"        },        {          "name": "_data",          "type": "bytes"        }      ],      "name": "safeTransferFrom",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "tokenURI",      "outputs": [        {          "name": "",          "type": "string"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [],      "name": "pendingOwner",      "outputs": [        {          "name": "",          "type": "address"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "",          "type": "address"        }      ],      "name": "adminsMap",      "outputs": [        {          "name": "",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_owner",          "type": "address"        },        {          "name": "_operator",          "type": "address"        }      ],      "name": "isApprovedForAll",      "outputs": [        {          "name": "",          "type": "bool"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "_newOwner",          "type": "address"        }      ],      "name": "transferOwnership",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "anonymous": false,      "inputs": [        {          "indexed": true,          "name": "_from",          "type": "address"        },        {          "indexed": true,          "name": "_to",          "type": "address"        },        {          "indexed": true,          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "Transfer",      "type": "event"    },    {      "anonymous": false,      "inputs": [        {          "indexed": true,          "name": "_owner",          "type": "address"        },        {          "indexed": true,          "name": "_approved",          "type": "address"        },        {          "indexed": true,          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "Approval",      "type": "event"    },    {      "anonymous": false,      "inputs": [        {          "indexed": true,          "name": "_owner",          "type": "address"        },        {          "indexed": true,          "name": "_operator",          "type": "address"        },        {          "indexed": false,          "name": "_approved",          "type": "bool"        }      ],      "name": "ApprovalForAll",      "type": "event"    },    {      "anonymous": false,      "inputs": [        {          "indexed": true,          "name": "previousOwner",          "type": "address"        },        {          "indexed": true,          "name": "newOwner",          "type": "address"        }      ],      "name": "OwnershipTransferred",      "type": "event"    },    {      "constant": false,      "inputs": [        {          "name": "_tokenId",          "type": "uint256"        },        {          "name": "_owner",          "type": "address"        },        {          "name": "_creator",          "type": "address"        },        {          "name": "_uri",          "type": "string"        },        {          "name": "_metadataUri",          "type": "string"        },        {          "name": "_created",          "type": "uint256"        }      ],      "name": "mint",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "burn",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": false,      "inputs": [        {          "name": "_tokenId",          "type": "uint256"        },        {          "name": "_approved",          "type": "address"        }      ],      "name": "forceApproval",      "outputs": [],      "payable": false,      "stateMutability": "nonpayable",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "tokenSource",      "outputs": [        {          "name": "uri",          "type": "string"        },        {          "name": "creator",          "type": "address"        },        {          "name": "created",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_uri",          "type": "string"        }      ],      "name": "tokenBySourceUri",      "outputs": [        {          "name": "tokenId",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_tokenId",          "type": "uint256"        }      ],      "name": "getNFT",      "outputs": [        {          "name": "id",          "type": "uint256"        },        {          "name": "uri",          "type": "string"        },        {          "name": "metadataUri",          "type": "string"        },        {          "name": "owner",          "type": "address"        },        {          "name": "creator",          "type": "address"        },        {          "name": "created",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    },    {      "constant": true,      "inputs": [        {          "name": "_uri",          "type": "string"        }      ],      "name": "getSourceUriHash",      "outputs": [        {          "name": "hash",          "type": "uint256"        }      ],      "payable": false,      "stateMutability": "view",      "type": "function"    }  ]`;
+  before(async () => {
+    james.account = accounts[1];
+    lars.account = accounts[2];
 
-//   const owner = accounts[0];
-//   const balin = accounts[1];
+    bankContract = await MarbleBank.new();
+    candidateContract = await MarbleNFTCandidate.new();
+    factoryContract = await MarbleNFTFactory.new(candidateContract.address);
+    erc20Token = await ERC20.new();
+    metatransactionsContract = await MarbleMetatransactions.new(factoryContract.address, "1")
 
-//   before(async () => {
-//     provider = waffle.createMockProvider(); 
-//     [user] = await waffle.getWallets(provider)
-//   });
+    // set contract references
+    await candidateContract.setMetatransactionsContract(metatransactionsContract.address);
+    await candidateContract.setMinimalMintingPriceInToken(erc20Token.address, candidatePrice);
+    await candidateContract.setBankContract(bankContract.address);
 
-//   beforeEach(async () => {
-//     mockFactoryContract = new Doppelganger.default(marbleNFTFactoryAbi);
-//     mockNftContract = new Doppelganger.default(marbleNFTAbi);
+    // set affiliates
+    await bankContract.addAffiliate(candidateContract.address);
+    await bankContract.addAffiliate(metatransactionsContract.address);
 
-//     await mockFactoryContract.deploy(user);
-//     await mockNftContract.deploy(user);
+    // deposit tokens to bank for selected wallets
+    await erc20Token.increaseAllowance(bankContract.address, ownerBankInitialBalance + jamesBankInitialBalance + larsBankInitialBalance, { from: owner })
+    await bankContract.deposit(erc20Token.address, ownerBankInitialBalance, owner, "deposit", { from: owner })
+    await bankContract.deposit(erc20Token.address, jamesBankInitialBalance, james.account, "deposit", { from: owner })
+    await bankContract.deposit(erc20Token.address, larsBankInitialBalance, lars.account, "deposit", { from: owner })
+    
+  });
 
-//     await mockFactoryContract.marbleNFTContract.returns(mockNftContract.address); 
-//     await mockNftContract.forceApproval.returns();
-//     await mockNftContract.safeTransferFrom.returns();
+  describe("createPageCandidateWithERC20 function", () => {
+    
+    it("creates the candidate", async () => {
+      const candidateUri = "https://boardgamegeek.com/boardgame/331787/tiny-epic-dungeons";
 
-//     metatransactionsContract = await MarbleMetatransactions.new(mockFactoryContract.address, 2);
-//     // erc20Token = await ERC20.new();
-//     // await erc20Token.approve(bankContract.address, 10000000000000);
-//   });
+      await metatransactionsContract.createPageCandidateWithERC20(candidateUri, erc20Token.address, { from: owner });
+      const createdCandidate = await candidateContract.getCandidate(candidateUri);
 
-//   describe("transferNft function", () => {
-//     // transferNft(address toAddress, uint256 tokenId)
-//     it("actually transfers the nft", async () => {
-//       // await mock.givenMethodReturnBool(
-//       //   token.contract.methods.transferFrom(0, 0, 0).encodeABI(), 
-//       //   true
-//       // )
+      assertResponse(createdCandidate, {
+        index: web3.utils.toBN(0),
+        owner: owner,
+        mintingPrice: web3.utils.toBN(candidatePrice),
+        uri: candidateUri,
+      }, "The created candidate is wrong")
+    });
 
-//       await metatransactionsContract.transferNft(owner, 1, mockNftContract.address);
-  
-//       // assert.equal(await erc20Token.balanceOf(owner), originalTokensAmount - depositAmount);
-//       // assert.equal(await erc20Token.balanceOf(bankContract.address), depositAmount);
-//     });
-//   });
+    it("emits candidate created event", async () => {
+      const candidateUri = "https://boardgamegeek.com/boardgame/193738/great-western-trail"
 
-// });
+      const response = await metatransactionsContract.createPageCandidateWithERC20(candidateUri, erc20Token.address, { from: james.account });
+
+      // because the event is not emitted directly by the metatx contract, we need to use this workaround
+      let innerTx = await truffleAssert.createTransactionResult(candidateContract, response.tx);
+
+      truffleAssert.eventEmitted(innerTx, 'CandidateCreated', { 
+        index: web3.utils.toBN(1), 
+        owner: james.account, 
+        mintingPrice: web3.utils.toBN(candidatePrice), 
+        paidInToken: erc20Token.address, 
+        uri: candidateUri,
+      });
+    });
+
+    it("reverts when not enough tokens in bank", async () => {
+      const candidateUri = "https://boardgamegeek.com/boardgame/329465/red-rising"
+
+      await truffleAssert.reverts(
+        metatransactionsContract.createPageCandidateWithERC20(candidateUri, erc20Token.address, { from: lars.account }),
+        "Not enough tokens in the bank."
+      )
+    })
+  });
+
+  describe("executeBankPayment function", () => {
+
+    it("creates correct transction in bank", async () => {
+      const paymentAmount = 26;
+      const paymentTo = candidateContract.address;
+      const note = "test payment"
+
+      await metatransactionsContract.executeBankPayment(erc20Token.address, paymentAmount, paymentTo, note, { from: james.account });
+
+      // there should be previous transactions from previous tests (deposits, creating candidate)
+      const expectedTransactionId = 6;
+      assertResponse(
+        await bankContract.transactions.call(expectedTransactionId),
+        { 
+          id: web3.utils.toBN(expectedTransactionId),
+          from: james.account,
+          to: paymentTo,
+          affiliateExecuted: metatransactionsContract.address,
+          token: erc20Token.address, 
+          amount: web3.utils.toBN(paymentAmount), 
+          note: note
+        }, 
+        "Incorrect transaction stored"
+      )
+    })
+
+    it("emits transaction event", async () => {
+      const paymentAmount = 28;
+      const paymentTo = candidateContract.address;
+      const note = "test payment 2"
+
+      const response = await metatransactionsContract.executeBankPayment(erc20Token.address, paymentAmount, paymentTo, note, { from: james.account });
+
+      // because the event is not emitted directly by the metatx contract, we need to use this workaround
+      let innerTx = await truffleAssert.createTransactionResult(bankContract, response.tx);
+
+      truffleAssert.eventEmitted(innerTx, 'Payment', { 
+        transactionId: web3.utils.toBN(7), 
+        from: james.account, 
+        to: paymentTo, 
+        affiliate: metatransactionsContract.address, 
+        token: erc20Token.address, 
+        amount: web3.utils.toBN(paymentAmount), 
+        note: note
+      });
+    })
+  });
+
+  describe("setMarbleFactoryContract function", () => {
+
+    it("actually hanges the contract reference", async () => {
+      const artificialAddress = "0x4569E094036304AC7a0F9AA0A5e418915077a544"
+      await metatransactionsContract.setMarbleFactoryContract(artificialAddress, { from: owner });
+
+      assert.equal(
+        await metatransactionsContract.marbleNFTFactoryContract(),
+        artificialAddress,
+        "Incorrectly set new factory contract address"
+      )
+
+      // revert back for future tests
+      await metatransactionsContract.setMarbleFactoryContract(factoryContract.address, { from: owner });
+    })
+
+    it("reverts when not called from owner", async () => {
+      const artificialAddress = "0x4569E094036304AC7a0F9AA0A5e418915077a544"
+      
+      await truffleAssert.reverts(
+        metatransactionsContract.setMarbleFactoryContract(artificialAddress, { from: lars.account }),
+        "Ownable: caller is not the owner"
+      )
+    });
+  })
+
+});

@@ -1,7 +1,7 @@
 const RmbcSeller = artifacts.require("./RmbcSeller.sol");
-const logger = require('../../../original/test/utils/logger');
+const logger = require('../utils/logger');
 const truffleAssert = require('truffle-assertions');
-const [dragonslayer, demonhunter] = require("../../../original/test/utils/actors.js");
+const [dragonslayer, demonhunter] = require("../utils/actors.js");
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 contract("RmbcSeller", accounts => {

@@ -206,7 +206,7 @@ contract("MarbleBank", accounts => {
         token: erc20Token.address,
         amount: web3.utils.toBN(withdrawAmount), 
         note: withdrawNote
-      }, "Withdraw tranaction stored incorrectly")
+      }, "Withdraw transaction stored incorrectly")
       assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
     })
   
@@ -284,7 +284,7 @@ contract("MarbleBank", accounts => {
         token: erc20Token.address,
         amount: web3.utils.toBN(payAmount), 
         note: payNote
-      }, "Payment tranaction stored incorrectly")
+      }, "Payment transaction stored incorrectly")
       assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
     })
 
@@ -357,7 +357,7 @@ contract("MarbleBank", accounts => {
 
       assertResponse(await bankContract.transactions.call(1), { 
         id: web3.utils.toBN(1),
-        from: owner, 
+        from: dragonslayer.account, 
         to: dragonslayer.account, 
         affiliateExecuted: zeroAddress, 
         token: erc20Token.address, 
@@ -372,7 +372,7 @@ contract("MarbleBank", accounts => {
         token: erc20Token.address,
         amount: web3.utils.toBN(payAmount), 
         note: payNote
-      }, "Payment tranaction stored incorrectly")
+      }, "Payment transaction stored incorrectly")
       assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
     })
 
@@ -414,7 +414,7 @@ contract("MarbleBank", accounts => {
   
       await truffleAssert.reverts(
         bankContract.payByAffiliate(erc20Token.address, depositAmount, dragonslayer.account, owner, "pay by aff test"), 
-        "User is not affiliate"
+        "Address is not affiliate"
       );
     })
   })
@@ -518,7 +518,7 @@ contract("MarbleBank", accounts => {
       await bankContract.addAffiliate(dragonslayer.account);
       await truffleAssert.reverts(
         bankContract.addAffiliate(dragonslayer.account),
-        "User is affiliate"
+        "Address is affiliate"
       )
     })
 

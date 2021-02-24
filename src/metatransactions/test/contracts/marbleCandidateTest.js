@@ -289,7 +289,7 @@ contract("MarbleCandidateTest", accounts => {
       await erc20Token.approve(bankContract.address, 10000000000000, { from: rick.account });
     })
 
-    it('creates the candidate', async () => {
+    it('creates the candidate and cahrges user correctly', async () => {
       const uri = "https://solarsystem.nasa.gov/planets/saturn/overview";
 
       await erc20Token.transfer(rick.account, 200, { from: owner })

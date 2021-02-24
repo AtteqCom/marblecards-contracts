@@ -16,8 +16,8 @@ contract MarbleBank is MarbleBankInterface, Ownable
   string constant REVERT_USER_ACCOUNT_DOES_NOT_EXIST = "User account does not exist";
   string constant REVERT_USER_DOES_NOT_HAVE_ACCOUNT_FOR_TOKEN = "Token account for the given user does not exist";
   string constant REVERT_AFFILIATE_NULL_ADDRESS = "Null address cannot be affiliate";
-  string constant REVERT_USER_NOT_AFFILIATE = "User is not affiliate";
-  string constant REVERT_USER_IS_AFFILIATE = "User is affiliate";
+  string constant REVERT_ADDRESS_NOT_AFFILIATE = "Address is not affiliate";
+  string constant REVERT_ADDRESS_IS_AFFILIATE = "Address is affiliate";
 
   /// @notice Event emited when a user deposits tokens to the bank
   /// @param from Address of the user which deposited the tokens
@@ -112,7 +112,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
   /// @param user Address of the tested user
   modifier mustBeAffiliate(address user) 
   {
-    require(affiliates[user], REVERT_USER_NOT_AFFILIATE);
+    require(affiliates[user], REVERT_ADDRESS_NOT_AFFILIATE);
     _;
   }
 
@@ -240,7 +240,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     onlyOwner 
   {
     require(newAffiliate != address(0), REVERT_AFFILIATE_NULL_ADDRESS);
-    require(!affiliates[newAffiliate], REVERT_USER_IS_AFFILIATE);
+    require(!affiliates[newAffiliate], REVERT_ADDRESS_IS_AFFILIATE);
     affiliates[newAffiliate] = true;
 
     emit AffiliateAdded(newAffiliate);
@@ -254,7 +254,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     external 
     onlyOwner 
   {
-    require(affiliates[affiliate], REVERT_USER_NOT_AFFILIATE);
+    require(affiliates[affiliate], REVERT_ADDRESS_NOT_AFFILIATE);
     affiliates[affiliate] = false;
 
     emit AffiliateRemoved(affiliate);
