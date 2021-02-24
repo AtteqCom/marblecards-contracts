@@ -1,12 +1,22 @@
 const MarbleBank = artifacts.require("./MarbleBank.sol");
 const ERC20 = artifacts.require("./MetaCoin.sol");
 
-const logger = require('../../../original/test/utils/logger');
+const logger = require('../utils/logger');
 const truffleAssert = require('truffle-assertions');
+const assertResponse = require('../utils/assertResponse');
 
-const [dragonslayer, demonhunter] = require("../../../original/test/utils/actors.js");
+const [dragonslayer, demonhunter] = require("../utils/actors.js");
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
+const noTransaction = { 
+  id: web3.utils.toBN(0), 
+  from: zeroAddress, 
+  to: zeroAddress, 
+  affiliateExecuted: zeroAddress, 
+  token: zeroAddress, 
+  amount: web3.utils.toBN(0), 
+  note: ""
+}
 
 contract("MarbleBank", accounts => {
   let bankContract;
@@ -42,6 +52,24 @@ contract("MarbleBank", accounts => {
       truffleAssert.eventEmitted(response, 'Deposit', { 
         transactionId: web3.utils.toBN(1), from: owner, to: owner, token: erc20Token.address, amount: web3.utils.toBN(depositAmount), note 
       });
+    })
+
+    it("stores the transaction", async () => {
+      const depositAmount = 335;
+      const note = "my test deposit";
+
+      await bankContract.deposit(erc20Token.address, depositAmount, owner, note, { from: owner });
+
+      assertResponse(await bankContract.transactions.call(1), { 
+        id: web3.utils.toBN(1), 
+        from: owner, 
+        to: owner, 
+        affiliateExecuted: zeroAddress, 
+        token: erc20Token.address, 
+        amount: web3.utils.toBN(depositAmount), 
+        note: note
+      }, "Deposit transaction stored incorrectly")
+      assertResponse(await bankContract.transactions.call(2), noTransaction, "Later transactions should not exist")
     })
   
     it("reverts on deposit to null address", async () => {
@@ -84,6 +112,24 @@ contract("MarbleBank", accounts => {
       truffleAssert.eventEmitted(response, 'Deposit', { 
         transactionId: web3.utils.toBN(1), from: owner, to: dragonslayer.account, token: erc20Token.address, amount: web3.utils.toBN(depositAmount), note 
       });
+    })
+
+    it("stores the transaction", async () => {
+      const depositAmount = 333;
+      const note = "depo depo deposit";
+
+      await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, note, { from: owner });
+
+      assertResponse(await bankContract.transactions.call(1), { 
+        id: web3.utils.toBN(1), 
+        from: owner, 
+        to: dragonslayer.account, 
+        affiliateExecuted: zeroAddress, 
+        token: erc20Token.address, 
+        amount: web3.utils.toBN(depositAmount), 
+        note: note
+      }, "Deposit transaction stored incorrectly")
+      assertResponse(await bankContract.transactions.call(2), noTransaction, "Later transactions should not exist")
     })
 
     it("reverts when not enough tokens", async () => {
@@ -133,6 +179,36 @@ contract("MarbleBank", accounts => {
         transactionId: web3.utils.toBN(2), user: owner, token: erc20Token.address, amount: web3.utils.toBN(withdrawAmount), note 
       });
     })
+
+    it("stores the transaction", async () => {
+      const depositAmount = 666;
+      const depositNote = "deposit the devil";
+      const withdrawAmount = 444;
+      const withdrawNote = "withdraw";
+
+      await bankContract.deposit(erc20Token.address, depositAmount, owner, depositNote);
+      await bankContract.withdraw(erc20Token.address, withdrawAmount, withdrawNote);
+
+      assertResponse(await bankContract.transactions.call(1), { 
+        id: web3.utils.toBN(1),
+        from: owner, 
+        to: owner, 
+        affiliateExecuted: zeroAddress, 
+        token: erc20Token.address, 
+        amount: web3.utils.toBN(depositAmount), 
+        note: depositNote
+      }, "Deposit transaction stored incorrectly")
+      assertResponse(await bankContract.transactions.call(2), { 
+        id: web3.utils.toBN(2),
+        from: bankContract.address,
+        to: owner,
+        affiliateExecuted: zeroAddress,
+        token: erc20Token.address,
+        amount: web3.utils.toBN(withdrawAmount), 
+        note: withdrawNote
+      }, "Withdraw tranaction stored incorrectly")
+      assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
+    })
   
     it("reverts when not enough tokens deposited", async () => {
       const depositAmount = 50;
@@ -174,12 +250,42 @@ contract("MarbleBank", accounts => {
       const note = "test payment";
   
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
-      const response = await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, note);
+      const response = await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, note, { from: owner });
   
       truffleAssert.eventEmitted(response, 'Payment', { 
         transactionId: web3.utils.toBN(2), from: owner, to: dragonslayer.account, token: erc20Token.address, 
         amount: web3.utils.toBN(payAmount), note, affiliate: zeroAddress,
       });
+    })
+
+    it("stores the transaction", async () => {
+      const depositAmount = 126;
+      const depositNote = "deposit some $$";
+      const payAmount = 106;
+      const payNote = "pay aliments";
+
+      await bankContract.deposit(erc20Token.address, depositAmount, owner, depositNote);
+      await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, payNote, { from: owner });
+
+      assertResponse(await bankContract.transactions.call(1), { 
+        id: web3.utils.toBN(1),
+        from: owner, 
+        to: owner, 
+        affiliateExecuted: zeroAddress, 
+        token: erc20Token.address, 
+        amount: web3.utils.toBN(depositAmount), 
+        note: depositNote
+      }, "Deposit transaction stored incorrectly")
+      assertResponse(await bankContract.transactions.call(2), { 
+        id: web3.utils.toBN(2),
+        from: owner,
+        to: dragonslayer.account,
+        affiliateExecuted: zeroAddress,
+        token: erc20Token.address,
+        amount: web3.utils.toBN(payAmount), 
+        note: payNote
+      }, "Payment tranaction stored incorrectly")
+      assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
     })
 
     it("reverts on pay to null address", async () => {
@@ -236,6 +342,39 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(payAmount), note, affiliate: owner
       });
     });
+
+    it("stores the transaction", async () => {
+      const depositAmount = 42;
+      const depositNote = "deposit some $$$$$";
+      const payAmount = 24;
+      const payNote = "pay pay";
+
+      await erc20Token.transfer(dragonslayer.account, 100, { from: owner })
+      await erc20Token.approve(bankContract.address, 100, { from: dragonslayer.account });
+      await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, depositNote, { from: dragonslayer.account });
+      await bankContract.addAffiliate(owner);
+      await bankContract.payByAffiliate(erc20Token.address, payAmount, dragonslayer.account, demonhunter.account, payNote, { from: owner });
+
+      assertResponse(await bankContract.transactions.call(1), { 
+        id: web3.utils.toBN(1),
+        from: owner, 
+        to: dragonslayer.account, 
+        affiliateExecuted: zeroAddress, 
+        token: erc20Token.address, 
+        amount: web3.utils.toBN(depositAmount), 
+        note: depositNote
+      }, "Deposit transaction stored incorrectly")
+      assertResponse(await bankContract.transactions.call(2), { 
+        id: web3.utils.toBN(2),
+        from: dragonslayer.account,
+        to: demonhunter.account,
+        affiliateExecuted: owner,
+        token: erc20Token.address,
+        amount: web3.utils.toBN(payAmount), 
+        note: payNote
+      }, "Payment tranaction stored incorrectly")
+      assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
+    })
 
     it("reverts on pay to null address", async () => {
       const depositAmount = 40;

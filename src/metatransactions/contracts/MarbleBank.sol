@@ -361,15 +361,15 @@ contract MarbleBank is MarbleBankInterface, Ownable
   /// @param token Address of the transfered token
   /// @param amount Amount of the transfered tokens
   /// @param note Description of the bank transaction
-  /// @return transacionId Id of the bank transaction
+  /// @return transactionId Id of the bank transaction
   function _createTransaction(address from, address to, address affiliateExecuted, address token, uint256 amount, string memory note) 
     private 
-    returns (uint256 transacionId)
+    returns (uint256 transactionId)
   {
     uint256 transactionId = ++lastTransactionId;
     transactions[transactionId] = Transaction(
       {
-        id: transacionId,
+        id: transactionId,
         from: from,
         to: to,
         affiliateExecuted: affiliateExecuted,
