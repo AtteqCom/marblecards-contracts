@@ -6,3 +6,5 @@ docker/geth/ignore.me.js
 build/contracts/
 **/*_deploy*.log
 build/
+
+.vscode/*
