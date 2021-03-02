@@ -15,61 +15,62 @@ contract("RmbcSeller", accounts => {
     sellerContract = await RmbcSeller.new();
   })
 
-  describe("payEth function", () => {
+  describe("payChainCurrency function", () => {
 
     it("emits correct event", async () => {
       const sentEthAmount = 226;
       const expectedRmbcAmount = 11;
   
-      await sellerContract.setMinimalEthAmount(sentEthAmount);
-      const response = await sellerContract.payEth(expectedRmbcAmount, { from: owner, value: sentEthAmount });
+      await sellerContract.setMinimalPaidAmount(sentEthAmount);
+      const response = await sellerContract.payChainCurrency(expectedRmbcAmount, { from: owner, value: sentEthAmount });
   
-      truffleAssert.eventEmitted(response, 'EthPaid', { 
-        fromAddress: owner, ethAmount: web3.utils.toBN(sentEthAmount), expectedRmbcAmount: web3.utils.toBN(expectedRmbcAmount)
+      truffleAssert.eventEmitted(response, 'ChainCurrencyPaid', { 
+        fromAddress: owner, paidAmount: web3.utils.toBN(sentEthAmount), expectedRmbcAmount: web3.utils.toBN(expectedRmbcAmount)
       });
     });
 
     it("reverts when payment under minimal price", async () => {
       const minimalAmount = 100;
 
-      await sellerContract.setMinimalEthAmount(minimalAmount);
+      await sellerContract.setMinimalPaidAmount(minimalAmount);
 
       await truffleAssert.reverts(
-        sellerContract.payEth(10, { from: owner, value: minimalAmount - 1 }),
+        sellerContract.payChainCurrency(10, { from: owner, value: minimalAmount - 1 }),
         "Not enough Ether provided.",
       )
     });
   });
 
-  describe("setMinimalEthAmoun function", () => {
+  describe("setMinimalPaidAmount function", () => {
     it("reverts when not owner tries to change minimal price", async () => {
       await truffleAssert.reverts(
-        sellerContract.setMinimalEthAmount(10, { from: dragonslayer.account }),
+        sellerContract.setMinimalPaidAmount(10, { from: dragonslayer.account }),
         ""
       )
     })
   });
 
   describe("withdraw function", () => {
-    it("actually withdraws the ETH", async () => {
-      await sellerContract.setMinimalEthAmount(10);
-      const previousOwnerBalance = await web3.eth.getBalance(owner);
+    it("actually withdraws the chain currency", async () => {
+      await sellerContract.setMinimalPaidAmount(10);
+      const previousOwnerBalance = web3.utils.toBN(await web3.eth.getBalance(owner));
       
-      await sellerContract.payEth(10, { from: demonhunter.account, value: 26 })
-      await sellerContract.payEth(10, { from: demonhunter.account, value: 53 })
-      await sellerContract.payEth(10, { from: dragonslayer.account, value: 51 })
-      await sellerContract.payEth(10, { from: demonhunter.account, value: 13 })
+      await sellerContract.payChainCurrency(10, { from: demonhunter.account, value: 26 })
+      await sellerContract.payChainCurrency(10, { from: demonhunter.account, value: 53 })
+      await sellerContract.payChainCurrency(10, { from: dragonslayer.account, value: 51 })
+      await sellerContract.payChainCurrency(10, { from: demonhunter.account, value: 13 })
 
-      const contractBalance = await web3.eth.getBalance(sellerContract.address);
+      const contractBalance = web3.utils.toBN(await web3.eth.getBalance(sellerContract.address));
 
       const withdrawReceipt = await sellerContract.withdrawBalance({ from: owner });
       const gasUsed = withdrawReceipt.receipt.gasUsed;
       const gasPrice = (await web3.eth.getTransaction(withdrawReceipt.tx)).gasPrice;
-      const gasCost = gasUsed * gasPrice;
+      const gasCost = web3.utils.toBN(gasUsed * gasPrice);
 
-      const currentOwnerBalance = await web3.eth.getBalance(owner);
+      const currentOwnerBalance = web3.utils.toBN(await web3.eth.getBalance(owner));
+      const expectedOwnerBalance = previousOwnerBalance.sub(gasCost).add(contractBalance)
 
-      assert.equal(currentOwnerBalance, parseInt(previousOwnerBalance) - gasCost + parseInt(contractBalance));
+      assert.equal(currentOwnerBalance.toString(), expectedOwnerBalance.toString());
     });
 
     it("reverts when called from non owner account", async () => {
