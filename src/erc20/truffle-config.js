@@ -58,7 +58,7 @@ module.exports = {
 
   compilers: {
     solc: {
-      version: "0.4.24",
+      version: "0.5.10",
       settings: {
         //Note: The default solc version is *not* set here!
         //It's set in compilerSupplier/index.js in compile-solidity
