@@ -4,6 +4,7 @@ pragma solidity 0.7.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./MarbleBankInterface.sol";
+import "./MarbleBankWithdrawAuthorizationInterface.sol";
 
 
 /// @title Bank contract for Marblegame
@@ -18,6 +19,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
   string constant REVERT_AFFILIATE_NULL_ADDRESS = "Null address cannot be affiliate";
   string constant REVERT_ADDRESS_NOT_AFFILIATE = "Address is not affiliate";
   string constant REVERT_ADDRESS_IS_AFFILIATE = "Address is affiliate";
+  string constant REVERT_WITHDRAW_NOT_AUTHORIZED = "Withdraw not authorized";
 
   /// @notice Event emited when a user deposits tokens to the bank
   /// @param from Address of the user which deposited the tokens
@@ -116,6 +118,8 @@ contract MarbleBank is MarbleBankInterface, Ownable
     _;
   }
 
+  MarbleBankWithdrawAuthorizationInterface public withdrawAuthorization;
+
   /// @dev Maps user address to his account
   mapping(address => UserAccount) public accounts;
 
@@ -154,8 +158,10 @@ contract MarbleBank is MarbleBankInterface, Ownable
     external 
     hasTokenAccount(msg.sender, address(token))
   {
+    require(withdrawAuthorization.canWithdraw(msg.sender, address(token), amount), REVERT_WITHDRAW_NOT_AUTHORIZED);
     require(_userBalance(msg.sender, token) >= amount, REVERT_NOT_ENOUGH_TOKENS);
     _withdraw(msg.sender, token, amount, note);
+    withdrawAuthorization.withdrawn(msg.sender, address(token), amount);
   }
 
 
@@ -272,6 +278,16 @@ contract MarbleBank is MarbleBankInterface, Ownable
     return affiliates[testedAddress];
   }
 
+  /// @notice Sets contract which authorizes users to withdraw tokens
+  /// @param _withdrawAuthorization Address of the contract
+  function setWithdrawAuthorization(MarbleBankWithdrawAuthorizationInterface _withdrawAuthorization)
+    override
+    external
+    onlyOwner
+  {
+    withdrawAuthorization = _withdrawAuthorization;
+  }
+
   /// @dev Creates account for the given user and given token if it does not exists. Firstly, it creates account for the user (if does not exist) and then the token account (if does not exists)
   /// @param userAddress Address of the user whose account is to be created
   /// @param token Address of the token for which the account is to be created
@@ -366,7 +382,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     private 
     returns (uint256 transactionId)
   {
-    uint256 transactionId = ++lastTransactionId;
+    transactionId = ++lastTransactionId;
     transactions[transactionId] = Transaction(
       {
         id: transactionId,

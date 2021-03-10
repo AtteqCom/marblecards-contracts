@@ -1,28 +1,49 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.0;
+pragma solidity 0.6.2;
 
 
-import "./EIP712MetaTransaction.sol";
 import "./MarbleMetatransactionsInterface.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
+import "./Ownable.sol";
+import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
 
 
 /// @title Metatransactions support for Marble.Card Dapp
-/// @dev Since our original contracts do not support metatransactions, we have implemented this wrapper contract
-contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactionsInterface, Ownable {
+/// @dev Since our original contracts do not support metatransactions, we have implemented this wrapper contract. 
+///   We also need to use custom Ownable contract, because Ownable from openzeppelin contains _msgSender function which 
+///   clashes with the one from BaseRelayRecipient contract.
+contract MarbleMetatransactions is BaseRelayRecipient, MarbleMetatransactionsInterface, Ownable {
 
   /// @notice Address of the marbl nft factory contract
   MarbleNFTFactory public marbleNFTFactoryContract;
 
+  /// @param _trustedForwarder Address of the forwarder which we trust (has permissions to execute functions on this contract)
   /// @param _marbleNFTFactoryContract Address of the marble nft factory contract
-  /// @param transactionsFromChainId Only transactions containing this chain id in their data will be supported.
-  constructor(MarbleNFTFactory _marbleNFTFactoryContract, uint transactionsFromChainId) 
-    EIP712MetaTransaction("MarbleCards test", "1", transactionsFromChainId) 
+  constructor(address _trustedForwarder, MarbleNFTFactory _marbleNFTFactoryContract)
+    public
   {
+    trustedForwarder = _trustedForwarder;
 		marbleNFTFactoryContract = _marbleNFTFactoryContract;
 	}
+
+  /// @notice Sets the trusted forwarder which has permissions to execute functions on this contract
+  /// @param _trustedForwarder Address of the trusted forwarder
+  function setTrustedForwarder(address _trustedForwarder)
+    external
+    onlyOwner
+  {
+    trustedForwarder = _trustedForwarder;
+  }
+
+  /// @notice Get version of this metatransactions contract
+  /// @return The version
+  function versionRecipient() 
+    external 
+    view
+    override 
+    returns (string memory) 
+  {
+    return "1";
+  }
 
   /// @notice Creates page candidate using erc20 token for payment.
   /// @dev Creates page candidate using the given uri for the given user. The user needs to have enough tokens deposited in the erc20 bank which is used by the candidate contract.
@@ -38,7 +59,7 @@ contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactions
     override 
     external 
   {
-    address issuer = msgSender();
+    address issuer = _msgSender();
     marbleNFTFactoryContract.marbleNFTCandidateContract().createCandidateWithERC20ForUser(uri, erc20Token, issuer);
   }
 
@@ -52,7 +73,7 @@ contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactions
     override
     external
   {
-    address sender = msgSender();
+    address sender = _msgSender();
     MarbleBank bank = marbleNFTFactoryContract.marbleNFTCandidateContract().erc20Bank();
     bank.payByAffiliate(erc20Token, amount, sender, to, note);
   }
@@ -65,7 +86,7 @@ contract MarbleMetatransactions is EIP712MetaTransaction, MarbleMetatransactions
     override 
     external 
   {
-    address issuer = msgSender();
+    address issuer = _msgSender();
 
     marbleNFTFactoryContract.marbleNFTContract().forceApproval(tokenId, address(this));
     marbleNFTFactoryContract.marbleNFTContract().safeTransferFrom(issuer, toAddress, tokenId);

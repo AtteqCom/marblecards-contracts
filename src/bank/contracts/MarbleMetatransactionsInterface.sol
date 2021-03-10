@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.2;
+pragma solidity 0.7.0;
 
 
+import "./EIP712MetaTransaction.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 
@@ -26,7 +27,7 @@ abstract contract MarbleNFTFactory {
 
 /// @dev Partial interface of the MarbleBank contract so that we can easily work with it
 abstract contract MarbleBank {
-  function payByAffiliate(address token, uint256 amount, address from, address to, string calldata note) external virtual;
+  function payByAffiliate(address token, uint256 amount, address from, address to, string memory note) external virtual;
 }
 
 

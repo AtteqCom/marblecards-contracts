@@ -2,6 +2,8 @@
 pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./MarbleBankWithdrawAuthorizationInterface.sol";
+
 
 interface MarbleBankInterface {
 
@@ -80,5 +82,10 @@ interface MarbleBankInterface {
     external 
     view 
     returns(bool addressIsAffiliate);
+
+  /// @notice Sets contract which authorizes users to withdraw tokens
+  /// @param _withdrawAuthorization Address of the contract
+  function setWithdrawAuthorization(MarbleBankWithdrawAuthorizationInterface _withdrawAuthorization)
+    external;
 
 }
