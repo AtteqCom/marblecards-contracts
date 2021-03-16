@@ -14,6 +14,7 @@ builder:
     - "./build/core:/marblegame/core/build"
     - "./build/metatransactions:/marblegame/metatransactions/build"
     - "./build/erc20:/marblegame/erc20/build"
+    - "./build/mememarket:/marblegame/mememarket/build"
     - "./src/core/contracts:/marblegame/core/contracts"
     - "./src/core/migrations:/marblegame/core/migrations"
     - "./src/core/test:/marblegame/core/test"
@@ -28,6 +29,8 @@ builder:
     - "./src/original/migrations:/marblegame/original/migrations"
     - "./src/erc20/contracts:/marblegame/erc20/contracts"
     - "./src/erc20/migrations:/marblegame/erc20/migrations"
+    - "./src/mememarket/contracts:/marblegame/mememarket/contracts"
+    - "./src/mememarket/test:/marblegame/mememarket/test"
 ganache:
   image: trufflesuite/ganache-cli:latest
   command: ganache -p 8545 -h 0.0.0.0 --mnemonic "${mnemonic}" --blockTime 5
