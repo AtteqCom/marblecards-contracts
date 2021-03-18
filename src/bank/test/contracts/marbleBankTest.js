@@ -1,4 +1,5 @@
 const MarbleBank = artifacts.require("./MarbleBank.sol");
+const MarbleBankWithdrawAuthorization = artifacts.require("./MarbleBankWithdrawAuthorization.sol");
 const ERC20 = artifacts.require("./MetaCoin.sol");
 
 const logger = require('../utils/logger');
@@ -20,6 +21,7 @@ const noTransaction = {
 
 contract("MarbleBank", accounts => {
   let bankContract;
+  let withdrawAuthorizationContract;
   let erc20Token;
   const owner = accounts[0];
 
@@ -28,8 +30,11 @@ contract("MarbleBank", accounts => {
 
   beforeEach(async () => {
     bankContract = await MarbleBank.new();
+    withdrawAuthorizationContract = await MarbleBankWithdrawAuthorization.new();
     erc20Token = await ERC20.new();
+
     await erc20Token.approve(bankContract.address, 10000000000000);
+    await bankContract.setWithdrawAuthorization(withdrawAuthorizationContract.address);
   });
 
   describe("deposit function", () => {
@@ -60,7 +65,7 @@ contract("MarbleBank", accounts => {
 
       await bankContract.deposit(erc20Token.address, depositAmount, owner, note, { from: owner });
 
-      assertResponse(await bankContract.transactions.call(1), { 
+      assertResponse(await bankContract.transactions(1), { 
         id: web3.utils.toBN(1), 
         from: owner, 
         to: owner, 
@@ -69,7 +74,7 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(depositAmount), 
         note: note
       }, "Deposit transaction stored incorrectly")
-      assertResponse(await bankContract.transactions.call(2), noTransaction, "Later transactions should not exist")
+      assertResponse(await bankContract.transactions(2), noTransaction, "Later transactions should not exist")
     })
   
     it("reverts on deposit to null address", async () => {
@@ -120,7 +125,7 @@ contract("MarbleBank", accounts => {
 
       await bankContract.deposit(erc20Token.address, depositAmount, dragonslayer.account, note, { from: owner });
 
-      assertResponse(await bankContract.transactions.call(1), { 
+      assertResponse(await bankContract.transactions(1), { 
         id: web3.utils.toBN(1), 
         from: owner, 
         to: dragonslayer.account, 
@@ -129,7 +134,7 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(depositAmount), 
         note: note
       }, "Deposit transaction stored incorrectly")
-      assertResponse(await bankContract.transactions.call(2), noTransaction, "Later transactions should not exist")
+      assertResponse(await bankContract.transactions(2), noTransaction, "Later transactions should not exist")
     })
 
     it("reverts when not enough tokens", async () => {
@@ -149,6 +154,7 @@ contract("MarbleBank", accounts => {
       const withdrawAmount = 5;
   
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
+      await withdrawAuthorizationContract.addToWhitelist(owner);
       await bankContract.withdraw(erc20Token.address, withdrawAmount, "withdraw");
   
       assert.equal(await erc20Token.balanceOf(owner), originalTokensAmount - depositAmount + withdrawAmount);
@@ -161,6 +167,7 @@ contract("MarbleBank", accounts => {
       const withdrawAmount = 17;
   
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
+      await withdrawAuthorizationContract.addToWhitelist(owner);
       await bankContract.withdraw(erc20Token.address, withdrawAmount, "withdraw");
   
       assert.equal(await erc20Token.balanceOf(owner), originalTokensAmount - depositAmount + withdrawAmount);
@@ -173,6 +180,7 @@ contract("MarbleBank", accounts => {
       const note = "withdraw";
   
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
+      await withdrawAuthorizationContract.addToWhitelist(owner);
       const response = await bankContract.withdraw(erc20Token.address, withdrawAmount, note);
   
       truffleAssert.eventEmitted(response, 'Withdrawal', { 
@@ -187,9 +195,10 @@ contract("MarbleBank", accounts => {
       const withdrawNote = "withdraw";
 
       await bankContract.deposit(erc20Token.address, depositAmount, owner, depositNote);
+      await withdrawAuthorizationContract.addToWhitelist(owner);
       await bankContract.withdraw(erc20Token.address, withdrawAmount, withdrawNote);
 
-      assertResponse(await bankContract.transactions.call(1), { 
+      assertResponse(await bankContract.transactions(1), { 
         id: web3.utils.toBN(1),
         from: owner, 
         to: owner, 
@@ -198,7 +207,7 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(depositAmount), 
         note: depositNote
       }, "Deposit transaction stored incorrectly")
-      assertResponse(await bankContract.transactions.call(2), { 
+      assertResponse(await bankContract.transactions(2), { 
         id: web3.utils.toBN(2),
         from: bankContract.address,
         to: owner,
@@ -207,7 +216,7 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(withdrawAmount), 
         note: withdrawNote
       }, "Withdraw transaction stored incorrectly")
-      assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
+      assertResponse(await bankContract.transactions(3), noTransaction, "Later transactions should not exist")
     })
   
     it("reverts when not enough tokens deposited", async () => {
@@ -215,11 +224,26 @@ contract("MarbleBank", accounts => {
       const withdrawAmount = 51;
   
       await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
+      await withdrawAuthorizationContract.addToWhitelist(owner);
+
       await truffleAssert.reverts(
         bankContract.withdraw(erc20Token.address, withdrawAmount, "withdraw"), 
         "Not enough tokens"
       );
     })
+
+    it("reverts when not authorized to withdraw tokens", async () => {
+      const depositAmount = 50;
+
+      await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
+      
+      // NOTE: by default, no address is authorized to withdraw untill the authorization is given explicitly
+      await truffleAssert.reverts(
+        bankContract.withdraw(erc20Token.address, depositAmount, "withdraw"), 
+        "Withdraw not authorized"
+      );
+    })
+
   })
   
   describe("pay function", () => {
@@ -267,7 +291,7 @@ contract("MarbleBank", accounts => {
       await bankContract.deposit(erc20Token.address, depositAmount, owner, depositNote);
       await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, payNote, { from: owner });
 
-      assertResponse(await bankContract.transactions.call(1), { 
+      assertResponse(await bankContract.transactions(1), { 
         id: web3.utils.toBN(1),
         from: owner, 
         to: owner, 
@@ -276,7 +300,7 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(depositAmount), 
         note: depositNote
       }, "Deposit transaction stored incorrectly")
-      assertResponse(await bankContract.transactions.call(2), { 
+      assertResponse(await bankContract.transactions(2), { 
         id: web3.utils.toBN(2),
         from: owner,
         to: dragonslayer.account,
@@ -285,7 +309,7 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(payAmount), 
         note: payNote
       }, "Payment transaction stored incorrectly")
-      assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
+      assertResponse(await bankContract.transactions(3), noTransaction, "Later transactions should not exist")
     })
 
     it("reverts on pay to null address", async () => {
@@ -355,7 +379,7 @@ contract("MarbleBank", accounts => {
       await bankContract.addAffiliate(owner);
       await bankContract.payByAffiliate(erc20Token.address, payAmount, dragonslayer.account, demonhunter.account, payNote, { from: owner });
 
-      assertResponse(await bankContract.transactions.call(1), { 
+      assertResponse(await bankContract.transactions(1), { 
         id: web3.utils.toBN(1),
         from: dragonslayer.account, 
         to: dragonslayer.account, 
@@ -364,7 +388,7 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(depositAmount), 
         note: depositNote
       }, "Deposit transaction stored incorrectly")
-      assertResponse(await bankContract.transactions.call(2), { 
+      assertResponse(await bankContract.transactions(2), { 
         id: web3.utils.toBN(2),
         from: dragonslayer.account,
         to: demonhunter.account,
@@ -373,7 +397,7 @@ contract("MarbleBank", accounts => {
         amount: web3.utils.toBN(payAmount), 
         note: payNote
       }, "Payment transaction stored incorrectly")
-      assertResponse(await bankContract.transactions.call(3), noTransaction, "Later transactions should not exist")
+      assertResponse(await bankContract.transactions(3), noTransaction, "Later transactions should not exist")
     })
 
     it("reverts on pay to null address", async () => {
@@ -471,6 +495,7 @@ contract("MarbleBank", accounts => {
       const result1 = await bankContract.userBalance(erc20Token.address, owner);
       assert.equal(result1, 20)
       
+      await withdrawAuthorizationContract.addToWhitelist(owner);
       await bankContract.withdraw(erc20Token.address, 15, "withdraw");
       const result2 = await bankContract.userBalance(erc20Token.address, owner);
       assert.equal(result2, 5)
@@ -576,6 +601,28 @@ contract("MarbleBank", accounts => {
       await bankContract.removeAffiliate(owner);
       const result = await bankContract.isAffiliate(owner);
       assert.isFalse(result);
+    })
+  })
+
+  describe("setWithdrawAuthorization function", () => {
+    it("actually changes the contract", async () => {
+      const newAuthContract = await MarbleBankWithdrawAuthorization.new();
+
+      assert.notEqual(await bankContract.withdrawAuthorization(), newAuthContract.address, 
+        "The initial address should differ from the one to which it is to be changed")
+      
+      await bankContract.setWithdrawAuthorization(newAuthContract.address);
+
+      assert.equal(await bankContract.withdrawAuthorization(), newAuthContract.address, 
+        "The address should be changed to the new contract");
+    })
+
+    it("reverts when not called from the owner address", async () => {
+      const newAuthContract = await MarbleBankWithdrawAuthorization.new();
+
+      await truffleAssert.reverts(
+        bankContract.setWithdrawAuthorization(newAuthContract.address, { from: demonhunter.account })
+      )
     })
   })
   
