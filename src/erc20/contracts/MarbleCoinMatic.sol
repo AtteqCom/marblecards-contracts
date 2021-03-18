@@ -656,7 +656,7 @@ contract Ownable {
 // AdministratorRole allows for non-owners to be allowed to perform actions on the contract
 // ERC20Detailed adds "name", "symbol", and "decimal" values
 // ERC20Burnable allows for coins to be burned by anyone
-contract MarbleCoin is ERC20, Ownable, AdministratorRole, ERC20Detailed, ERC20Burnable {
+contract MarbleCoinMatic is ERC20, Ownable, AdministratorRole, ERC20Detailed, ERC20Burnable {
 
     bool private _supplycapped = false;
 
