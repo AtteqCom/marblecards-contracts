@@ -15,6 +15,7 @@ builder:
     - "./build/bank:/marblegame/bank/build"
     - "./build/metatransactions:/marblegame/metatransactions/build"
     - "./build/erc20:/marblegame/erc20/build"
+    - "./build/mememarket:/marblegame/mememarket/build"
     - "./src/original/contracts:/marblegame/original/contracts"
     - "./src/original/deployments:/marblegame/original/deployments"
     - "./src/original/migrations:/marblegame/original/migrations"
