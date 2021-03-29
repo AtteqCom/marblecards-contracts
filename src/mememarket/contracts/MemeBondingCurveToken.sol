@@ -2,11 +2,11 @@
 pragma solidity ^0.7.0;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {BancorFormula} from "./bancor/BancorFormula.sol";
+// import {BancorFormula} from "./bancor/BancorFormula.sol";
 
-contract MemeBondingCurveToken is ERC20, BancorFormula {
-    event Minted(address sender, uint256 amount, uint256 deposit);
-    event Burned(address sender, uint256 amount, uint256 refund);
+contract MemeBondingCurveToken is ERC20 {
+    event Purchase(address _buyer, uint256 _memeTokenAmount, uint256 _reserveTokenSpent, uint256 _newPrice);
+    event Sale(address _seller, uint256 _memeTokenAmount, uint256 _reserveTokenRefund, uint256 _newPrice);
 
     ERC20 private reserveToken;
 
@@ -22,7 +22,7 @@ contract MemeBondingCurveToken is ERC20, BancorFormula {
     }
 
     function buy(uint256 _reserveTokenAmount) public {
-        _continuousMint(_reserveTokenAmount);
+        uint256 memeTokenBoughtAmount = _continuousMint(_reserveTokenAmount);
         require(
             reserveToken.transferFrom(
                 msg.sender,
@@ -31,14 +31,16 @@ contract MemeBondingCurveToken is ERC20, BancorFormula {
             ),
             "mint() ERC20.transferFrom failed."
         );
+        emit Purchase(msg.sender, memeTokenBoughtAmount, _reserveTokenAmount, 1);
     }
 
     function sell(uint256 _continuousTokenAmount) public {
-        uint256 returnAmount = _continuousBurn(_continuousTokenAmount);
+        uint256 returnReserveTokenAmount = _continuousBurn(_continuousTokenAmount);
         require(
-            reserveToken.transfer(msg.sender, returnAmount),
+            reserveToken.transfer(msg.sender, returnReserveTokenAmount),
             "burn() ERC20.transfer failed."
         );
+        emit Sale(msg.sender, _continuousTokenAmount, returnReserveTokenAmount, 1);
     }
 
     function reserveBalance() public view returns (uint256) {
@@ -50,7 +52,6 @@ contract MemeBondingCurveToken is ERC20, BancorFormula {
 
         uint256 rewardAmount = _computeContinuousMintReward(_deposit);
         _mint(msg.sender, rewardAmount);
-        emit Minted(msg.sender, rewardAmount, _deposit);
         return rewardAmount;
     }
 
@@ -63,7 +64,6 @@ contract MemeBondingCurveToken is ERC20, BancorFormula {
 
         uint256 refundAmount = _computeContinuousBurnRefund(_amountToBurn);
         _burn(msg.sender, _amountToBurn);
-        emit Burned(msg.sender, _amountToBurn, refundAmount);
         return refundAmount;
     }
 
@@ -71,25 +71,25 @@ contract MemeBondingCurveToken is ERC20, BancorFormula {
         internal
         returns (uint256)
     {
-        return
-            calculatePurchaseReturn(
-                totalSupply(),
-                reserveBalance(),
-                reserveWeight,
-                _reserveTokenDeposit
-            );
+        return _reserveTokenDeposit;
+            // calculatePurchaseReturn(
+            //     totalSupply(),
+            //     reserveBalance(),
+            //     reserveWeight,
+            //     _reserveTokenDeposit
+            // );
     }
 
     function _computeContinuousBurnRefund(uint256 _continuousTokenAmountToBurn)
         internal
         returns (uint256)
     {
-        return
-            calculateSaleReturn(
-                totalSupply(),
-                reserveBalance(),
-                reserveWeight,
-                _continuousTokenAmountToBurn
-            );
+        return _continuousTokenAmountToBurn;
+            // calculateSaleReturn(
+            //     totalSupply(),
+            //     reserveBalance(),
+            //     reserveWeight,
+            //     _continuousTokenAmountToBurn
+            // );
     }
 }
