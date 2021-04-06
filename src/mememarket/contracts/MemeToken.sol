@@ -4,7 +4,7 @@ pragma solidity ^0.7.0;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // import {BancorFormula} from "./bancor/BancorFormula.sol";
 
-contract MemeBondingCurveToken is ERC20 {
+contract MemeToken is ERC20 {
     event Purchase(address _buyer, uint256 _memeTokenAmount, uint256 _reserveTokenSpent, uint256 _newPrice);
     event Sale(address _seller, uint256 _memeTokenAmount, uint256 _reserveTokenRefund, uint256 _newPrice);
 
