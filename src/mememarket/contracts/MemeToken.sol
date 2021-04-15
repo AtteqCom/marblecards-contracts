@@ -5,8 +5,8 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // import {BancorFormula} from "./bancor/BancorFormula.sol";
 
 contract MemeToken is ERC20 {
-    event Purchase(address _buyer, uint256 _memeTokenAmount, uint256 _reserveTokenSpent, uint256 _newPrice);
-    event Sale(address _seller, uint256 _memeTokenAmount, uint256 _reserveTokenRefund, uint256 _newPrice);
+    event Purchase(address _buyer, uint256 _memeTokenAmount, uint256 _reserveTokenSpent, uint256 _newPrice, uint256 _newTokenSupply);
+    event Sale(address _seller, uint256 _memeTokenAmount, uint256 _reserveTokenRefund, uint256 _newPrice, uint256 _newTokenSupply);
 
     ERC20 private reserveToken;
 
@@ -31,7 +31,7 @@ contract MemeToken is ERC20 {
             ),
             "mint() ERC20.transferFrom failed."
         );
-        emit Purchase(msg.sender, memeTokenBoughtAmount, _reserveTokenAmount, 1);
+        emit Purchase(msg.sender, memeTokenBoughtAmount, _reserveTokenAmount, 1, totalSupply());
     }
 
     function sell(uint256 _continuousTokenAmount) public {
@@ -40,7 +40,7 @@ contract MemeToken is ERC20 {
             reserveToken.transfer(msg.sender, returnReserveTokenAmount),
             "burn() ERC20.transfer failed."
         );
-        emit Sale(msg.sender, _continuousTokenAmount, returnReserveTokenAmount, 1);
+        emit Sale(msg.sender, _continuousTokenAmount, returnReserveTokenAmount, 1, totalSupply());
     }
 
     function reserveBalance() public view returns (uint256) {
