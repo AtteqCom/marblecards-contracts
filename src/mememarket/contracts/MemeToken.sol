@@ -5,8 +5,8 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // import {BancorFormula} from "./bancor/BancorFormula.sol";
 
 contract MemeToken is ERC20 {
-    event Purchase(address _buyer, uint256 _memeTokenAmount, uint256 _reserveTokenSpent, uint256 _newPrice, uint256 _newTokenSupply);
-    event Sale(address _seller, uint256 _memeTokenAmount, uint256 _reserveTokenRefund, uint256 _newPrice, uint256 _newTokenSupply);
+    event Purchase(address _buyer, uint256 _memeTokenAmount, uint256 _reserveTokenSpent, uint256 _newPrice, uint256 _newTotalSupply);
+    event Sale(address _seller, uint256 _memeTokenAmount, uint256 _reserveTokenRefund, uint256 _newPrice, uint256 _newTotalSupply);
 
     ERC20 private reserveToken;
 
@@ -47,6 +47,14 @@ contract MemeToken is ERC20 {
         return reserveToken.balanceOf(address(this));
     }
 
+    function estimateTokenBuy(uint256 _reserveTokenAmount) public view returns (uint256) {
+        return _computeContinuousMintReward(_reserveTokenAmount);
+    }
+
+    function estimateTokenSale(uint256 _continouesTokenAmount) public view returns (uint256) {
+        return _computeContinuousBurnRefund(_continouesTokenAmount);
+    }
+
     function _continuousMint(uint256 _deposit) internal returns (uint256) {
         require(_deposit > 0, "Deposit must be non-zero.");
 
@@ -68,7 +76,7 @@ contract MemeToken is ERC20 {
     }
 
     function _computeContinuousMintReward(uint256 _reserveTokenDeposit)
-        internal
+        internal view
         returns (uint256)
     {
         return _reserveTokenDeposit;
@@ -81,7 +89,7 @@ contract MemeToken is ERC20 {
     }
 
     function _computeContinuousBurnRefund(uint256 _continuousTokenAmountToBurn)
-        internal
+        internal view
         returns (uint256)
     {
         return _continuousTokenAmountToBurn;
