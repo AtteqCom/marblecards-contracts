@@ -31,7 +31,7 @@ contract MemeToken is ERC20 {
             ),
             "mint() ERC20.transferFrom failed."
         );
-        emit Purchase(msg.sender, memeTokenBoughtAmount, _reserveTokenAmount, 1, totalSupply());
+        emit Purchase(msg.sender, memeTokenBoughtAmount, _reserveTokenAmount, currentPrice(), totalSupply());
     }
 
     function sell(uint256 _continuousTokenAmount) public {
@@ -40,7 +40,7 @@ contract MemeToken is ERC20 {
             reserveToken.transfer(msg.sender, returnReserveTokenAmount),
             "burn() ERC20.transfer failed."
         );
-        emit Sale(msg.sender, _continuousTokenAmount, returnReserveTokenAmount, 1, totalSupply());
+        emit Sale(msg.sender, _continuousTokenAmount, returnReserveTokenAmount, currentPrice(), totalSupply());
     }
 
     function reserveBalance() public view returns (uint256) {
@@ -53,6 +53,10 @@ contract MemeToken is ERC20 {
 
     function estimateTokenSale(uint256 _continouesTokenAmount) public view returns (uint256) {
         return _computeContinuousBurnRefund(_continouesTokenAmount, totalSupply());
+    }
+
+    function currentPrice() public view returns (uint256) {
+        return estimateTokenSale(1);
     }
 
     function _continuousMint(uint256 _deposit) internal returns (uint256) {
