@@ -59,6 +59,10 @@ contract MemeToken is ERC20 {
         return estimateTokenSale(1);
     }
 
+    function reserveTokenAddress() public view returns (address) {
+        return address(reserveToken);
+    }
+
     function _continuousMint(uint256 _deposit) internal returns (uint256) {
         require(_deposit > 0, "Deposit must be non-zero.");
 
