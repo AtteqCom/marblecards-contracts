@@ -163,7 +163,7 @@ contract MarbleBank is MarbleBankInterface, Ownable, Pausable
   {
     require(withdrawAuthorization.canWithdraw(msg.sender, address(token), amount), REVERT_WITHDRAW_NOT_AUTHORIZED);
     require(_userBalance(msg.sender, token) >= amount, REVERT_NOT_ENOUGH_TOKENS);
-    _withdraw(msg.sender, token, amount, note);
+    _withdraw(msg.sender, msg.sender, token, amount, note);
     withdrawAuthorization.withdrawn(msg.sender, address(token), amount);
   }
 
@@ -296,6 +296,24 @@ contract MarbleBank is MarbleBankInterface, Ownable, Pausable
     withdrawAuthorization = _withdrawAuthorization;
   }
 
+  /// @notice Transfers all balance of the given user to the new bank
+  /// @param token address of the token to be transfered
+  /// @param userAddress address of the user whose balance is to be transfered
+  /// @param newBankAddress address of the new bank contract
+  function transferToNewBank(ERC20 token, address userAddress, MarbleBankInterface newBankAddress)
+    override
+    external
+    onlyOwner
+    whenPaused
+  {
+    uint256 amount = accounts[userAddress].tokenAccounts[address(token)].balance;
+    require(amount > 0, "Balance of the user is 0");
+
+    _withdraw(userAddress, address(this), token, amount, "Withdraw in order to transfer to new bank");
+    token.approve(address(newBankAddress), amount);
+    newBankAddress.deposit(token, amount, userAddress, "Deposit by the old bank");
+  }
+
   /// @dev Creates account for the given user and given token if it does not exists. Firstly, it creates account for the user (if does not exist) and then the token account (if does not exists)
   /// @param userAddress Address of the user whose account is to be created
   /// @param token Address of the token for which the account is to be created
@@ -360,22 +378,23 @@ contract MarbleBank is MarbleBankInterface, Ownable, Pausable
   }
 
   /// @dev Withdraws tokens from the given account. It transfers the tokens from the bank to the user address and decreases the balance on the account
-  /// @param user Address of the user from whose account the tokens are to be withdrawn
+  /// @param fromAccount Address of the user from whose account the tokens are to be withdrawn
+  /// @param toAddress Address to which the tokens are to be transfered
   /// @param token Address of the tokens to be withdrawn
   /// @param amount Amount of the tokens to be withdrawn
   /// @param note Note for the bank transaction
-  function _withdraw(address user, ERC20 token, uint256 amount, string memory note) 
+  function _withdraw(address fromAccount, address toAddress, ERC20 token, uint256 amount, string memory note) 
     private 
   {
-    UserTokenAccount storage userTokenAccount = accounts[user].tokenAccounts[address(token)];
+    UserTokenAccount storage userTokenAccount = accounts[fromAccount].tokenAccounts[address(token)];
 
-    token.transfer(user, amount);
+    token.transfer(toAddress, amount);
     userTokenAccount.balance -= amount;
     userTokenAccount.transactions.push(
-      _createTransaction(address(this), user, address(0), address(token), amount, note)
+      _createTransaction(address(this), fromAccount, address(0), address(token), amount, note)
     );
 
-    emit Withdrawal(lastTransactionId, user, address(token), amount, note);
+    emit Withdrawal(lastTransactionId, fromAccount, address(token), amount, note);
   }
 
   /// @dev Creates and stores new transaction entry and increases the transactions counter (lastTransactionId)

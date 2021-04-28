@@ -748,5 +748,52 @@ contract("MarbleBank", accounts => {
       );
     })
   })
+
+  describe("transferToNewBank function", () => {
+    it("actually transfers the money", async () => {
+      const amount = 1000;
+      const newBank = await MarbleBank.new();
+
+      await bankContract.deposit(erc20Token.address, amount, demonhunter.account, "deposit", {from: owner});
+
+      assert.equal(await bankContract.userBalance(erc20Token.address, demonhunter.account), amount, 
+        `The initial balance in old bank should be ${amount}`);
+      assert.equal(await newBank.userBalance(erc20Token.address, demonhunter.account), 0, 
+        "The balance in new bank should be 0 initially");
+
+      await bankContract.pause();
+      await bankContract.transferToNewBank(erc20Token.address, demonhunter.account, newBank.address, {from: owner})
+
+      assert.equal(await bankContract.userBalance(erc20Token.address, demonhunter.account), 0, 
+        `The balance in old bank should be 0 after the transfer`);
+      assert.equal(await newBank.userBalance(erc20Token.address, demonhunter.account), amount, 
+        `The balance in new bank should be ${amount} after the transfer`);
+      assert.equal(await erc20Token.balanceOf(newBank.address), amount, 
+        `The new bank's balance should be ${amount} after the transfer`);
+    });
+
+    it("reverts when contract not paused", async () => {
+      await truffleAssert.reverts(
+        bankContract.transferToNewBank(erc20Token.address, owner, bankContract.address, {from: owner}),
+        "Contract is not paused"
+      )
+    });
+
+    it("reverts when called from non owner", async () => {
+      await bankContract.pause();
+      await truffleAssert.reverts(
+        bankContract.transferToNewBank(erc20Token.address, owner, bankContract.address, {from: demonhunter.account}),
+        "Ownable: caller is not the owner"
+      )
+    });
+
+    it("reverts when user's balance is 0", async () => {
+      await bankContract.pause();
+      await truffleAssert.reverts(
+        bankContract.transferToNewBank(erc20Token.address, demonhunter.account, bankContract.address, {from: owner}),
+        "Balance of the user is 0"
+      )
+    });
+  })
   
 });
