@@ -51,12 +51,11 @@ module.exports = {
   compilers: {
     solc: {
       version: "0.7.0",
-      optimizer: {
-        enabled: true,
-        runs: 200
-      },
       settings: {
-        evmVersion: "istanbul"
+        optimizer: {
+          enabled: true,
+          runs: 200
+        },
       }
     }
   }
