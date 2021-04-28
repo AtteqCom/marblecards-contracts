@@ -3,13 +3,14 @@ pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./Pausable.sol";
 import "./MarbleBankInterface.sol";
 import "./MarbleBankWithdrawAuthorizationInterface.sol";
 
 
 /// @title Bank contract for Marblegame
 /// @notice This contract allows depositing and withdrawing any ERC20 type tokens for users. It also allows other Marble contracts to use this one for payments for their services (e.g. creating a page candidate)
-contract MarbleBank is MarbleBankInterface, Ownable 
+contract MarbleBank is MarbleBankInterface, Ownable, Pausable 
 {
 
   string constant REVERT_TO_NULL_ADDRESS = "Transaction to null address";
@@ -141,6 +142,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
   function deposit(ERC20 token, uint256 amount, address to, string memory note) 
     override 
     external 
+    whenNotPaused
   {
     require(to != address(0), REVERT_TO_NULL_ADDRESS);
     require(token.balanceOf(msg.sender) >= amount, REVERT_NOT_ENOUGH_TOKENS);
@@ -157,6 +159,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     override 
     external 
     hasTokenAccount(msg.sender, address(token))
+    whenNotPaused
   {
     require(withdrawAuthorization.canWithdraw(msg.sender, address(token), amount), REVERT_WITHDRAW_NOT_AUTHORIZED);
     require(_userBalance(msg.sender, token) >= amount, REVERT_NOT_ENOUGH_TOKENS);
@@ -175,6 +178,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     override 
     external 
     hasTokenAccount(msg.sender, address(token)) 
+    whenNotPaused
   {
     require(to != address(0), REVERT_TO_NULL_ADDRESS);
     require(_userBalance(msg.sender, token) >= amount, REVERT_NOT_ENOUGH_TOKENS);
@@ -193,6 +197,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     external 
     mustBeAffiliate(msg.sender) 
     hasTokenAccount(from, address(token)) 
+    whenNotPaused
   {
     require(to != address(0), REVERT_TO_NULL_ADDRESS);
     require(_userBalance(from, token) >= amount, REVERT_NOT_ENOUGH_TOKENS);
@@ -244,6 +249,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     override 
     external 
     onlyOwner 
+    whenNotPaused
   {
     require(newAffiliate != address(0), REVERT_AFFILIATE_NULL_ADDRESS);
     require(!affiliates[newAffiliate], REVERT_ADDRESS_IS_AFFILIATE);
@@ -258,7 +264,8 @@ contract MarbleBank is MarbleBankInterface, Ownable
   function removeAffiliate(address affiliate) 
     override 
     external 
-    onlyOwner 
+    onlyOwner
+    whenNotPaused 
   {
     require(affiliates[affiliate], REVERT_ADDRESS_NOT_AFFILIATE);
     affiliates[affiliate] = false;
@@ -284,6 +291,7 @@ contract MarbleBank is MarbleBankInterface, Ownable
     override
     external
     onlyOwner
+    whenNotPaused
   {
     withdrawAuthorization = _withdrawAuthorization;
   }

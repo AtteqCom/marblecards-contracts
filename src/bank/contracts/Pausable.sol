@@ -15,13 +15,13 @@ contract Pausable is Ownable {
 
   /// @notice Modifier to allow actions only when the contract IS paused
   modifier whenNotPaused() {
-    require(!paused);
+    require(!paused, "Contract is paused");
     _;
   }
 
   /// @notice Modifier to allow actions only when the contract IS NOT paused
   modifier whenPaused {
-    require(paused);
+    require(paused, "Contract is not paused");
     _;
   }
 
