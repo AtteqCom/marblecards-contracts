@@ -9,11 +9,6 @@ module.exports = async function(deployer) {
   // const mintingPriceEth = config.CANDIDATE_MINIMAL_PRICE;
   const mintingPriceEth = "5000000000000000";
 
-  await deployer.deploy(MarbleCandidate);
-  await deployer.deploy(MarbleBank);
-  await deployer.deploy(RmbcSeller);
-  await deployer.deploy(MarbleBankAuthorization);
-
   const candidate = await MarbleCandidate.deployed();
   const bank = await MarbleBank.deployed();
   const bankWithdrawAuthorization = await MarbleBankAuthorization.deployed();
