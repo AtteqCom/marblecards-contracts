@@ -88,4 +88,11 @@ interface MarbleBankInterface {
   function setWithdrawAuthorization(MarbleBankWithdrawAuthorizationInterface _withdrawAuthorization)
     external;
 
+  /// @notice Transfers all balance of the given user to the new bank
+  /// @param token address of the token to be transfered
+  /// @param userAddress address of the user whose balance is to be transfered
+  /// @param newBankAddress address of the new bank contract
+  function transferToNewBank(ERC20 token, address userAddress, MarbleBankInterface newBankAddress)
+    external;
+
 }

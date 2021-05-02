@@ -93,6 +93,16 @@ contract("MarbleBank", accounts => {
         "Not enough tokens"
       );
     })
+
+    it("reverts when paused", async () => {
+      const balance = (await erc20Token.balanceOf(owner));
+      await bankContract.pause();
+
+      await truffleAssert.reverts(
+        bankContract.deposit(erc20Token.address, balance, owner, "deposit"), 
+        "Contract is paused"
+      );
+    })
   })
 
   describe("deposit function when depositing to someone else's account", () => {
@@ -142,6 +152,16 @@ contract("MarbleBank", accounts => {
       await truffleAssert.reverts(
         bankContract.deposit(erc20Token.address, balance + 1, demonhunter.account, "deposit", { from: owner }), 
         "Not enough tokens"
+      );
+    })
+
+    it("reverts when paused", async () => {
+      const balance = (await erc20Token.balanceOf(owner));
+      await bankContract.pause();
+
+      await truffleAssert.reverts(
+        bankContract.deposit(erc20Token.address, balance, demonhunter.account, "deposit", { from: owner }), 
+        "Contract is paused"
       );
     })
 
@@ -244,6 +264,19 @@ contract("MarbleBank", accounts => {
       );
     })
 
+    it("reverts when paused", async () => {
+      const depositAmount = 10;
+      await bankContract.deposit(erc20Token.address, depositAmount, owner, "deposit");
+      await withdrawAuthorizationContract.addToWhitelist(owner);
+
+      await bankContract.pause();
+
+      await truffleAssert.reverts(
+        bankContract.withdraw(erc20Token.address, 1, "withdraw"), 
+        "Contract is paused"
+      );
+    })
+
   })
   
   describe("pay function", () => {
@@ -330,6 +363,18 @@ contract("MarbleBank", accounts => {
       await truffleAssert.reverts(
         bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, "test payment"), 
         "Not enough tokens"
+      );
+    })
+
+    it("reverts when paused", async () => {
+      const payAmount = 106;
+      await bankContract.deposit(erc20Token.address, payAmount, owner, "deposit");
+      await bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, "pay", { from: owner });
+      await bankContract.pause();
+
+      await truffleAssert.reverts(
+        bankContract.pay(erc20Token.address, payAmount, dragonslayer.account, "test payment"), 
+        "Contract is paused"
       );
     })
   })
@@ -439,6 +484,21 @@ contract("MarbleBank", accounts => {
       await truffleAssert.reverts(
         bankContract.payByAffiliate(erc20Token.address, depositAmount, dragonslayer.account, owner, "pay by aff test"), 
         "Address is not affiliate"
+      );
+    })
+
+    it("reverts when paused", async () => {
+      const payAmount = 12;
+      await erc20Token.transfer(dragonslayer.account, payAmount, { from: owner })
+      await erc20Token.approve(bankContract.address, 10000000000000, { from: dragonslayer.account });
+      await bankContract.deposit(erc20Token.address, payAmount, dragonslayer.account, "deposit", { from: dragonslayer.account });
+      await bankContract.addAffiliate(owner);
+
+      await bankContract.pause();
+
+      await truffleAssert.reverts(
+        bankContract.payByAffiliate(erc20Token.address, payAmount, dragonslayer.account, owner, "pay by aff test"),   
+        "Contract is paused"
       );
     })
   })
@@ -552,6 +612,15 @@ contract("MarbleBank", accounts => {
         bankContract.addAffiliate(dragonslayer.account, { from: dragonslayer.account })
       );
     })
+
+    it("reverts when paused", async () => {
+      await bankContract.pause();
+
+      await truffleAssert.reverts(
+        bankContract.addAffiliate(dragonslayer.account),
+        "Contract is paused"
+      );
+    })
   })
 
   describe("removeAffiliate function", () => {
@@ -574,6 +643,16 @@ contract("MarbleBank", accounts => {
 
       await truffleAssert.reverts(
         bankContract.removeAffiliate(dragonslayer.account, { from: dragonslayer.account })
+      );
+    })
+
+    it("reverts when paused", async () => {
+      await bankContract.addAffiliate(dragonslayer.account);
+      await bankContract.pause();
+
+      await truffleAssert.reverts(
+        bankContract.removeAffiliate(dragonslayer.account),
+        "Contract is paused"
       );
     })
   })
@@ -624,6 +703,97 @@ contract("MarbleBank", accounts => {
         bankContract.setWithdrawAuthorization(newAuthContract.address, { from: demonhunter.account })
       )
     })
+
+    it("reverts when paused", async () => {
+      const newAuthContract = await MarbleBankWithdrawAuthorization.new();
+      await bankContract.pause();
+
+      await truffleAssert.reverts(
+        bankContract.setWithdrawAuthorization(newAuthContract.address),
+        "Contract is paused"
+      );
+    })
+  })
+
+  describe("pause unpause functions", () => {
+    it("actually pauses the contract", async () => {
+      await bankContract.pause();
+
+      const isPaused = await bankContract.paused();
+
+      assert.equal(isPaused, true, "Paused should be true");
+    })
+
+    it("actually unpauses the contract", async () => {
+      await bankContract.pause();
+      assert.equal(true, await bankContract.paused(), "Paused should be true");
+      await bankContract.unpause();
+
+      const isPaused = await bankContract.paused();
+
+      assert.equal(isPaused, false, "Paused should be false");
+    })
+
+    it("reverts when pause called from non owner", async () => {
+      await truffleAssert.reverts(
+        bankContract.pause({from: demonhunter.account}),
+        "Ownable: caller is not the owner"
+      );
+    })
+    
+    it("reverts when unpause called from non owner", async () => {
+      await truffleAssert.reverts(
+        bankContract.unpause({from: demonhunter.account}),
+        "Ownable: caller is not the owner"
+      );
+    })
+  })
+
+  describe("transferToNewBank function", () => {
+    it("actually transfers the money", async () => {
+      const amount = 1000;
+      const newBank = await MarbleBank.new();
+
+      await bankContract.deposit(erc20Token.address, amount, demonhunter.account, "deposit", {from: owner});
+
+      assert.equal(await bankContract.userBalance(erc20Token.address, demonhunter.account), amount, 
+        `The initial balance in old bank should be ${amount}`);
+      assert.equal(await newBank.userBalance(erc20Token.address, demonhunter.account), 0, 
+        "The balance in new bank should be 0 initially");
+
+      await bankContract.pause();
+      await bankContract.transferToNewBank(erc20Token.address, demonhunter.account, newBank.address, {from: owner})
+
+      assert.equal(await bankContract.userBalance(erc20Token.address, demonhunter.account), 0, 
+        `The balance in old bank should be 0 after the transfer`);
+      assert.equal(await newBank.userBalance(erc20Token.address, demonhunter.account), amount, 
+        `The balance in new bank should be ${amount} after the transfer`);
+      assert.equal(await erc20Token.balanceOf(newBank.address), amount, 
+        `The new bank's balance should be ${amount} after the transfer`);
+    });
+
+    it("reverts when contract not paused", async () => {
+      await truffleAssert.reverts(
+        bankContract.transferToNewBank(erc20Token.address, owner, bankContract.address, {from: owner}),
+        "Contract is not paused"
+      )
+    });
+
+    it("reverts when called from non owner", async () => {
+      await bankContract.pause();
+      await truffleAssert.reverts(
+        bankContract.transferToNewBank(erc20Token.address, owner, bankContract.address, {from: demonhunter.account}),
+        "Ownable: caller is not the owner"
+      )
+    });
+
+    it("reverts when user's balance is 0", async () => {
+      await bankContract.pause();
+      await truffleAssert.reverts(
+        bankContract.transferToNewBank(erc20Token.address, demonhunter.account, bankContract.address, {from: owner}),
+        "Balance of the user is 0"
+      )
+    });
   })
   
 });
