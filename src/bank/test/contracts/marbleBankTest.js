@@ -794,6 +794,37 @@ contract("MarbleBank", accounts => {
         "Balance of the user is 0"
       )
     });
+  });
+
+  describe("withdrawByOwner function", () => {
+    it("actually withdraws the mbc", async () => {
+      const initialAmount = await erc20Token.balanceOf(owner);
+      const sentAmount = 10;
+
+      await erc20Token.transfer(bankContract.address, sentAmount, {from: owner});
+
+      assert.equal(await erc20Token.balanceOf(bankContract.address), sentAmount);
+
+      await bankContract.pause();
+      await bankContract.withdrawByOwner(erc20Token.address);
+
+      assert.equal((await erc20Token.balanceOf(owner)).toString(), initialAmount.toString());
+      assert.equal(await erc20Token.balanceOf(bankContract.address), 0);
+    })
+
+    it("reverts when contract not paused", async () => {
+      await truffleAssert.reverts(
+        bankContract.withdrawByOwner(erc20Token.address, {from: owner}),
+        "Contract is not paused"
+      )
+    })
+
+    it("revertes when called from non owner", async () => {
+      await truffleAssert.reverts(
+        bankContract.withdrawByOwner(erc20Token.address, {from: demonhunter.account}),
+        "Ownable: caller is not the owner"
+      )
+    })
   })
   
 });
