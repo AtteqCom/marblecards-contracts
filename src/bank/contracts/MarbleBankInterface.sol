@@ -95,4 +95,9 @@ interface MarbleBankInterface {
   function transferToNewBank(ERC20 token, address userAddress, MarbleBankInterface newBankAddress)
     external;
 
+  /// @notice Transfers tokens to the owner to avoid lock
+  /// @param token address of the token to be transfered 
+  function withdrawByOwner(ERC20 token) 
+    external;
+
 }
