@@ -314,6 +314,18 @@ contract MarbleBank is MarbleBankInterface, Ownable, Pausable
     newBankAddress.deposit(token, amount, userAddress, "Deposit by the old bank");
   }
 
+  /// @notice Transfers tokens to the owner to avoid lock
+  /// @param token address of the token to be transfered 
+  function withdrawByOwner(ERC20 token) 
+    override
+    external
+    onlyOwner
+    whenPaused
+  {
+    uint256 tokenAmount = token.balanceOf(address(this));
+    token.transfer(owner(), tokenAmount);
+  }
+
   /// @dev Creates account for the given user and given token if it does not exists. Firstly, it creates account for the user (if does not exist) and then the token account (if does not exists)
   /// @param userAddress Address of the user whose account is to be created
   /// @param token Address of the token for which the account is to be created
