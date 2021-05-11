@@ -154,7 +154,7 @@ contract("MarbleAuctionTest", accounts => {
   it("check current price when duration is over", async () => {
     console.log("Waiting for end of duration....");
 
-    delay(duration*1000);
+    await delay(duration*1000);
 
     assert.equal(await auctionContract.getCurrentPrice(jerry.token), jerry.payment);
 

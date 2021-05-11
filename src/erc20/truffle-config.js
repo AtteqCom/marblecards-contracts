@@ -1,10 +1,8 @@
-const HDWalletProvider = require("truffle-hdwallet-provider"); // WEB3.one
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 require('dotenv').config();  // Store environment-specific variable from '.env' to process.env
 
 module.exports = {
-  // See <http://truffleframework.com/docs/advanced/configuration>
-  // to customize your Truffle configuration!
   networks: {
     development: {
       host: "ganache",
@@ -24,9 +22,17 @@ module.exports = {
       gasPrice: 60000000000,
       gas: 901238
     },
+    matic: { // must be a web3-1.0.0, otherwise truffle commands may hang in CI
+      provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://rpc-mainnet.maticvigil.com"),
+      network_id: 137,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      gasPrice: 1000000000,
+      skipDryRun: true
+    },
     mumbai: { // must be a web3-1.0.0, otherwise truffle commands may hang in CI
       provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://rpc-mumbai.matic.today"),
-      network_id: '80001',
+      network_id: 80001,
       confirmations: 2,
       timeoutBlocks: 200,
       skipDryRun: true
@@ -38,6 +44,10 @@ module.exports = {
         new HDWalletProvider(process.env.WALLET_MNEMONIC, "https://ropsten.infura.io/v3/" + process.env.INFURA_KEY, 0, 6),
       network_id: '3'
     },
+    infuraGoerli: {
+      provider: () => new HDWalletProvider(process.env.WALLET_MNEMONIC, "https://goerli.infura.io/v3/" + process.env.INFURA_KEY, 0, 6),
+      network_id: '5'
+    },
     infuraRopstenTest: {
       // must be a web3-1.0.0, otherwise truffle commands may hang in CI
       provider: () =>
@@ -45,12 +55,17 @@ module.exports = {
       network_id: '3'
     }
   },
+
   compilers: {
     solc: {
-      version: "0.4.24",
-      optimizer: {
-        enabled: true,
-        runs: 200
+      version: "0.5.10",
+      settings: {
+        //Note: The default solc version is *not* set here!
+        //It's set in compilerSupplier/index.js in compile-solidity
+        optimizer: {
+          enabled: true,
+          runs: 200
+        },
       }
     }
   }
