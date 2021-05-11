@@ -1,4 +1,4 @@
-const HDWalletProvider = require("truffle-hdwallet-provider"); // WEB3.one
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 require('dotenv').config();  // Store environment-specific variable from '.env' to process.env
 
@@ -26,7 +26,7 @@ module.exports = {
       provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://rpc-mainnet.maticvigil.com"),
       network_id: 137,
       confirmations: 2,
-      timeoutBlocks: 200,
+      timeoutBlocks: 500,
       gasPrice: 1000000000,
       skipDryRun: true
     },
@@ -34,7 +34,7 @@ module.exports = {
       provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://rpc-mumbai.matic.today"),
       network_id: 80001,
       confirmations: 2,
-      timeoutBlocks: 200,
+      timeoutBlocks: 500,
       skipDryRun: true
     },
     // If you're using an HDWalletProvider, it must be Web3 1.0 enabled or your migration will hang.
