@@ -1,5 +1,5 @@
 const MarbleBank = artifacts.require("./MarbleBank.sol");
 
-module.exports = async function(deployer) {
-  await deployer.deploy(MarbleBank);
+module.exports = function(deployer) {
+  deployer.deploy(MarbleBank);
 };

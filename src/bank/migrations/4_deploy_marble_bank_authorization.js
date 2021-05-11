@@ -1,5 +1,5 @@
 const MarbleBankAuthorization = artifacts.require("./MarbleBankWithdrawAuthorization.sol");
 
-module.exports = async function(deployer) {
-  await deployer.deploy(MarbleBankAuthorization);
+module.exports = function(deployer) {
+  deployer.deploy(MarbleBankAuthorization);
 };
