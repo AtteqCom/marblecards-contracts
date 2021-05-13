@@ -19,7 +19,7 @@
     "dotenv": "^6.2.0",
     "eslint": "5.0.1",
     "ethjs-util": "^0.1.6",
-    "truffle": "5.1.64",
+    "truffle": "5.3.6",
     "truffle-deploy": "^1.1.0",
     "truffle-flattener": "^1.2.10",
     "truffle-assertions": "^0.9.2",
