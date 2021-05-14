@@ -136,4 +136,15 @@ contract MarbleMetatransactions is BaseRelayRecipient, MarbleMetatransactionsInt
     marbleNFTFactoryContract.marbleDutchAuctionContract().cancelAuctionByMetatransaction(nftId, issuer);
   }
 
+  /// @notice Gets current price (in MBC wei) of a given NFT in an auction
+  /// @param nftId ID of the queried NFT
+  function getAuctionCurrentPrice(uint256 nftId)
+    override
+    external
+    view
+    returns(uint256)
+  {
+    return marbleNFTFactoryContract.marbleDutchAuctionContract().getCurrentPrice(nftId); 
+  }
+
 }

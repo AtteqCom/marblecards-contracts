@@ -23,6 +23,7 @@ abstract contract MarbleDutchAuction {
   function createAuctionByMetatransaction(uint256 _tokenId, uint256 _startingPrice, uint256 _endingPrice, uint256 _duration, address _sender) external virtual;
   function bidByMetatransaction(uint256 _tokenId, uint256 _offer, address _offerBy) external virtual;
   function cancelAuctionByMetatransaction(uint256 _tokenId, address _sender) external virtual;
+  function getCurrentPrice(uint256 _tokenId) external virtual view returns (uint256);
 }
 
 /// @dev Partial interface of the MarbleNFTFactory contract so that we can easily work with it
@@ -96,4 +97,11 @@ interface MarbleMetatransactionsInterface {
   function cancelAuction(uint256 nftId) 
     external;
 
+  /// @notice Gets current price (in MBC wei) of a given NFT in an auction
+  /// @param nftId ID of the queried NFT
+  function getAuctionCurrentPrice(uint256 nftId)
+    external
+    view
+    returns(uint256);
+  
 }
