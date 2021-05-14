@@ -1,4 +1,4 @@
-const HDWalletProvider = require("truffle-hdwallet-provider"); // WEB3.one
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 require('dotenv').config();  // Store environment-specific variable from '.env' to process.env
 

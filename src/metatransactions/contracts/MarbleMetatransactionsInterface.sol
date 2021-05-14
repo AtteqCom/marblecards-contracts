@@ -18,10 +18,18 @@ abstract contract MarbleNFTCandidate {
   function createCandidateWithERC20ForUser(string calldata _uri, address _erc20, address _owner) external virtual returns(uint256 index);
 }
 
+/// @dev Partial interface of the MarbleDutchAuction contract to easen our work with it
+abstract contract MarbleDutchAuction {
+  function createAuctionByMetatransaction(uint256 _tokenId, uint256 _startingPrice, uint256 _endingPrice, uint256 _duration, address _sender) external virtual;
+  function bidByMetatransaction(uint256 _tokenId, uint256 _offer, address _offerBy) external virtual;
+  function cancelAuctionByMetatransaction(uint256 _tokenId, address _sender) external virtual;
+}
+
 /// @dev Partial interface of the MarbleNFTFactory contract so that we can easily work with it
 abstract contract MarbleNFTFactory {
   MarbleNFT public marbleNFTContract;
   MarbleNFTCandidate public marbleNFTCandidateContract;
+  MarbleDutchAuction public marbleDutchAuctionContract;
 }
 
 /// @dev Partial interface of the MarbleBank contract so that we can easily work with it
@@ -66,6 +74,26 @@ interface MarbleMetatransactionsInterface {
   /// @notice Sets the marble nft factory contract
   /// @dev Can be called only by the owner of this contract
   function setMarbleFactoryContract(MarbleNFTFactory _marbleNFTFactoryContract) 
+    external;
+
+  /// @notice Puts the given NFT on auction If executed by the NFT owner
+  /// @param nftId ID of the NFT token to be put on the auction
+  /// @param startingPrice Initial price in the auction
+  /// @param endingPrice Price at the end of the dynamic price phase of the auction and afterwards
+  /// @param duration Duration of the dynamic price phase of the auction
+  function startAuction(uint256 nftId, uint256 startingPrice, uint256 endingPrice, uint256 duration)
+    external;
+
+  /// @notice Bids on an NFT if it is in an auction
+  /// @dev If the bid is high enough, the auction is immediatelly finished and the NFT transfered to the bidder
+  /// @param nftId ID of the NFT to bid on
+  /// @param offer Bid offer in MBC wei
+  function bidAuction(uint256 nftId, uint256 offer)
+    external;
+
+  /// @notice Cancels auction on given NFT if issued by the owner and not in the first phase of the initial auction
+  /// @param nftId ID of the NFT whose auction is to be canceled
+  function cancelAuction(uint256 nftId) 
     external;
 
 }

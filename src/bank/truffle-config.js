@@ -1,4 +1,4 @@
-const HDWalletProvider = require("truffle-hdwallet-provider"); // WEB3.one
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 require('dotenv').config();  // Store environment-specific variable from '.env' to process.env
 
@@ -25,7 +25,7 @@ module.exports = {
     mumbai: { // must be a web3-1.0.0, otherwise truffle commands may hang in CI
       provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://rpc-mumbai.matic.today"),
       network_id: 80001,
-      confirmations: 2,
+      confirmations: 5,
       timeoutBlocks: 200,
       skipDryRun: true
     },

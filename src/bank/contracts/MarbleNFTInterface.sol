@@ -19,8 +19,8 @@ interface MarbleNFTInterface {
     uint256 _tokenId,
     address _owner,
     address _creator,
-    string calldata _uri,
-    string calldata _metadataUri,
+    string memory _uri,
+    string memory _metadataUri,
     uint256 _created
   )
     external;
@@ -48,14 +48,14 @@ interface MarbleNFTInterface {
     external
     view
     returns (
-      string calldata uri,
+      string memory uri,
       address creator,
       uint256 created
     );
 
   /// @dev Returns ID of NFT what matches provided source URI.
   /// @param _uri URI of source website.
-  function tokenBySourceUri(string calldata _uri)
+  function tokenBySourceUri(string memory _uri)
     external
     view
     returns (uint256 tokenId);
@@ -76,8 +76,8 @@ interface MarbleNFTInterface {
     view
     returns(
       uint256 id,
-      string calldata uri,
-      string calldata metadataUri,
+      string memory uri,
+      string memory metadataUri,
       address owner,
       address creator,
       uint256 created
@@ -86,7 +86,7 @@ interface MarbleNFTInterface {
 
   /// @dev Transforms URI to hash.
   /// @param _uri URI to be transformed to hash.
-  function getSourceUriHash(string calldata _uri)
+  function getSourceUriHash(string memory _uri)
     external
     view
     returns(uint256 hash);
