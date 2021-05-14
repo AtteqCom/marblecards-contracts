@@ -182,7 +182,7 @@ contract MarbleDutchAuction is
     whenNotPaused
     onlyMetatransactionsContract
   {
-    require(nftContract.ownerOf(_tokenId) == _sender, "Only owner of the token can create auction");
+    require(nftContract.ownerOf(_tokenId) == _sender, "Only owner of the token can create auction!");
 
     _createAuction(
       _tokenId,
