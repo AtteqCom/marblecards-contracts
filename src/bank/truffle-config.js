@@ -22,6 +22,14 @@ module.exports = {
       gasPrice: 60000000000,
       gas: 901238
     },
+    matic: { // must be a web3-1.0.0, otherwise truffle commands may hang in CI
+      provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://rpc-mainnet.maticvigil.com"),
+      network_id: 137,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      gasPrice: 1000000000,
+      skipDryRun: true
+    },
     mumbai: { // must be a web3-1.0.0, otherwise truffle commands may hang in CI
       provider: () => new HDWalletProvider(process.env.WALLET_PASSWORD, "https://rpc-mumbai.matic.today"),
       network_id: 80001,
