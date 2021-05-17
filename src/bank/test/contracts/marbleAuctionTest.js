@@ -206,105 +206,168 @@ contract("MarbleAuctionTest", accounts => {
     })
 
     describe("createAuctionByMetatransaction function", () => {
-      let metatransactionsAddress;
+      // let metatransactionsAddress;
 
-      beforeEach(async () => {
-        // NOTE: for testing purposes, we will need it to be some wallet
-        metatransactionsAddress = owner;
-        await auctionContract.setMetatransactionsContract(metatransactionsAddress, {from: owner});
-      })
+      // beforeEach(async () => {
+      //   // NOTE: for testing purposes, we will need it to be some wallet
+      //   metatransactionsAddress = owner;
+      //   await auctionContract.setMetatransactionsContract(metatransactionsAddress, {from: owner});
+      // })
 
-      it("reverts when not called from metatx address", async () => {
-        await createNFT(31, owner);
+      // it("reverts when not called from metatx address", async () => {
+      //   await createNFT(31, owner);
 
-        await truffleAssert.reverts(
-          auctionContract.createAuctionByMetatransaction(31, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(10000), owner, {from: rick.account}),
-          "Can be called only by metatransactions contract"
-        )
-      })
+      //   await truffleAssert.reverts(
+      //     auctionContract.createAuctionByMetatransaction(31, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(10000), owner, {from: rick.account}),
+      //     "Can be called only by metatransactions contract"
+      //   )
+      // })
 
-      it("reverts on nonexistent NFT", async () => {
-        await truffleAssert.reverts(
-          auctionContract.createAuctionByMetatransaction(5312, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(10000), owner, {from: metatransactionsAddress}),
-          "ERC721: owner query for nonexistent token"
-        )
-      })
+      // it("reverts on nonexistent NFT", async () => {
+      //   await truffleAssert.reverts(
+      //     auctionContract.createAuctionByMetatransaction(5312, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(10000), owner, {from: metatransactionsAddress}),
+      //     "ERC721: owner query for nonexistent token"
+      //   )
+      // })
 
-      it("reverts when not owner of the NFT", async () => {
-        await createNFT(32, owner);
+      // it("reverts when not owner of the NFT", async () => {
+      //   await createNFT(32, owner);
 
-        await truffleAssert.reverts(
-          auctionContract.createAuctionByMetatransaction(32, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(10000), rick.account, {from: metatransactionsAddress}),
-          "Only owner of the token can create auction!"
-        )
-      })
+      //   await truffleAssert.reverts(
+      //     auctionContract.createAuctionByMetatransaction(32, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(10000), rick.account, {from: metatransactionsAddress}),
+      //     "Only owner of the token can create auction!"
+      //   )
+      // })
 
-      it("reverts when auction too short", async () => {
-        await createNFT(33, owner);
+      // it("reverts when auction too short", async () => {
+      //   await createNFT(33, owner);
 
-        await truffleAssert.reverts(
-          auctionContract.createAuctionByMetatransaction(33, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(59), owner, {from: metatransactionsAddress}),
-          "Duration of the dynamic part of the auction has to be at least one minute"
-        )
-      })
+      //   await truffleAssert.reverts(
+      //     auctionContract.createAuctionByMetatransaction(33, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(59), owner, {from: metatransactionsAddress}),
+      //     "Duration of the dynamic part of the auction has to be at least one minute"
+      //   )
+      // })
 
-      it("reverts when paused", async () => {
-        await createNFT(34, rick.account);
-        await auctionContract.pause({from: owner});
+      // it("reverts when paused", async () => {
+      //   await createNFT(34, rick.account);
+      //   await auctionContract.pause({from: owner});
 
-        await truffleAssert.reverts(
-          auctionContract.createAuctionByMetatransaction(34, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(130), rick.account, {from: metatransactionsAddress}),
-          "Contract is paused"
-        )
-      })
+      //   await truffleAssert.reverts(
+      //     auctionContract.createAuctionByMetatransaction(34, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(130), rick.account, {from: metatransactionsAddress}),
+      //     "Contract is paused"
+      //   )
+      // })
 
-      it("emits correct event", async () => {
-        await createNFT(35, summer.account);
+      // it("emits correct event", async () => {
+      //   await createNFT(35, summer.account);
 
-        const result = await auctionContract.createAuctionByMetatransaction(35, web3.utils.toBN(10), web3.utils.toBN(5), web3.utils.toBN(120), summer.account, {from: metatransactionsAddress});
+      //   const result = await auctionContract.createAuctionByMetatransaction(35, web3.utils.toBN(10), web3.utils.toBN(5), web3.utils.toBN(120), summer.account, {from: metatransactionsAddress});
 
-        truffleAssert.eventEmitted(result, 'AuctionCreated', { 
-          tokenId: web3.utils.toBN(35), seller: summer.account, startingPrice: web3.utils.toBN(10), endingPrice: web3.utils.toBN(5), 
-          duration: web3.utils.toBN(120), delayedCancel: false
-        });
-      })
+      //   truffleAssert.eventEmitted(result, 'AuctionCreated', { 
+      //     tokenId: web3.utils.toBN(35), seller: summer.account, startingPrice: web3.utils.toBN(10), endingPrice: web3.utils.toBN(5), 
+      //     duration: web3.utils.toBN(120), delayedCancel: false
+      //   });
+      // })
 
-      it("changes the owner to the auction contract", async () => {
-        await createNFT(36, summer.account);
+      // it("changes the owner to the auction contract", async () => {
+      //   await createNFT(36, summer.account);
 
-        await auctionContract.createAuctionByMetatransaction(36, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(120), summer.account, {from: metatransactionsAddress});
+      //   await auctionContract.createAuctionByMetatransaction(36, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(120), summer.account, {from: metatransactionsAddress});
 
-        assert.equal(await nftContract.ownerOf(36), auctionContract.address);
-      })
+      //   assert.equal(await nftContract.ownerOf(36), auctionContract.address);
+      // })
     })
 
     describe("bid function", () => {
       it("reverts when token not in auction", async () => {
-        
+        await bankContract.deposit(erc20Contract.address, 10, owner, "deposit", {from: owner})
+
+        await truffleAssert.reverts(
+          auctionContract.bid(37, 10),
+          "NFT is not on this auction!"
+        )
       })
 
       it("reverts when contract is paused", async () => {
+        await auctionContract.pause();
 
+        await truffleAssert.reverts(
+          auctionContract.bid(38, 10),
+          "Contract is paused"
+        )
       })
 
       it("reverts when is initial auction and finished", async () => {
-        
+        const tokenId = 39;
+        const duration = 200;
+
+        await bankContract.deposit(erc20Contract.address, 10, morty.account, "deposit", {from: owner})
+        await createNFT(tokenId, owner);
+        await auctionContract.createMintingAuction(tokenId, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(duration), owner, {from: owner});
+        await advanceChainTime(duration + 20);
+
+        await truffleAssert.reverts(
+          auctionContract.bid(tokenId, 10, {from: morty.account}),
+          "You can not bid on this auction, because it has delayed cancel policy actived and after times up it belongs once again to seller!"
+        )
       })
 
       it("reverts when not enough mbc in bank", async () => {
-        
+        const tokenId = 40;
+        const duration = 200;
+
+        await bankContract.deposit(erc20Contract.address, 9, morty.account, "deposit", {from: owner})
+        await createNFT(tokenId, owner);
+        await auctionContract.createAuction(tokenId, web3.utils.toBN(10), web3.utils.toBN(10), web3.utils.toBN(duration), {from: owner});
+
+        await truffleAssert.reverts(
+          auctionContract.bid(tokenId, 10, {from: morty.account}),
+          "Not enough tokens in the bank"
+        )
       })
 
       it("emits correct event", async () => {
+        const tokenId = 41;
+        const cost = 256;
 
+        await bankContract.deposit(erc20Contract.address, cost, morty.account , "deposit", {from: owner})
+        await createNFT(tokenId, owner);
+        await auctionContract.createAuction(tokenId, web3.utils.toBN(cost), web3.utils.toBN(cost), web3.utils.toBN(duration), {from: owner});
+
+        const result = await auctionContract.bid(tokenId, cost, { from: morty.account });
+
+        truffleAssert.eventEmitted(result, 'AuctionSuccessful', { 
+          tokenId: web3.utils.toBN(tokenId), totalPrice: web3.utils.toBN(cost), winner: morty.account
+        });
       })
 
       it("transfers mbc from the bidder to the seller", async () => {
-        
+        const tokenId = 42;
+        const cost = 512;
+
+        await bankContract.deposit(erc20Contract.address, cost + 10, morty.account, "deposit", {from: owner})
+        const initialSellerBankBalance = await bankContract.userBalance(erc20Contract.address, morty.account);
+        const initialOwnerBalance = await erc20Contract.balanceOf(owner);
+        await createNFT(tokenId, owner);
+        await auctionContract.createAuction(tokenId, web3.utils.toBN(cost), web3.utils.toBN(cost), web3.utils.toBN(duration), {from: owner});
+
+        await auctionContract.bid(tokenId, cost, { from: morty.account });
+
+        assert.equal((await erc20Contract.balanceOf(owner)).toString(), +initialOwnerBalance + cost);
+        assert.equal((await bankContract.userBalance(erc20Contract.address, morty.account)).toString(), initialSellerBankBalance - cost);
       })
 
       it("transfers the token to the bidder", async () => {
+        const tokenId = 43;
+        const cost = 513;
 
+        await bankContract.deposit(erc20Contract.address, cost, morty.account, "deposit", {from: owner})
+        await createNFT(tokenId, owner);
+        await auctionContract.createAuction(tokenId, web3.utils.toBN(cost), web3.utils.toBN(cost), web3.utils.toBN(duration), {from: owner});
+
+        await auctionContract.bid(tokenId, cost, { from: morty.account });
+
+        assert.equal(await nftContract.ownerOf(tokenId), morty.account);
       })
     })
 

@@ -43,7 +43,6 @@ contract TestMarbleNFT is
   mapping (uint256 => uint256) public sourceUriHashToId;
 
   constructor() ERC721("MARBLE-NFT", "MRBLNFT")
-    public
   {
   }
 
@@ -89,8 +88,6 @@ contract TestMarbleNFT is
     external
     onlyAdmin
   {
-    address owner = ownerOf(_tokenId);
-
     MarbleNFTSource memory marbleNFTSource = idToMarbleNFTSource[_tokenId];
 
     if (bytes(marbleNFTSource.uri).length != 0) {
@@ -193,11 +190,11 @@ contract TestMarbleNFT is
    * @param _uri URI to be transformed to hash.
    */
   function getSourceUriHash(string calldata _uri)
-     external
-     view
-     returns(uint256 hash)
+    external
+    pure
+    returns(uint256 hash)
   {
-     return _getSourceUriHash(_uri);
+    return _getSourceUriHash(_uri);
   }
 
   /**
