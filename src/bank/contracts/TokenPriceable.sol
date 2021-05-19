@@ -41,6 +41,20 @@ contract TokenPriceable is Ownable {
     erc20Bank = bank;
   }
 
+  /// @dev Executes payment from one adress to another using bank contract
+  /// @param erc20 Address of the erc20 token
+  /// @param amount Amount of tokens to be paid
+  /// @param from Address of the user/contract to be charged
+  /// @param to Address of the user/contract to receive the tokens
+  /// @param note Note for the bank to store with the transaction
+  function _pay(ERC20 erc20, uint256 amount, address from, address to, string memory note)
+    internal
+  {
+    require(erc20Bank.hasEnoughTokens(erc20, amount, from), "Not enough tokens in the bank.");
+    require(erc20Bank.isAffiliate(address(this)), "User cannot be charged by this contract.");
+    erc20Bank.payByAffiliate(erc20, amount, from, to, note);
+  }
+
   /// @notice Withdraws all tokens of the given type
   /// @dev Transfer all tokens of the given type to the owner of this contract
   /// @param token Address of the token

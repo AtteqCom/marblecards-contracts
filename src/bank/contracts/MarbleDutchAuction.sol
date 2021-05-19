@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "./DutchAuctionEnumerable.sol";
 import "./MarbleNFTInterface.sol";
 import "./Adminable.sol";
-import "./TokenPriceable.sol";
 import "./Pausable.sol";
 import "./MarbleDutchAuctionInterface.sol";
 
@@ -17,8 +16,7 @@ contract MarbleDutchAuction is
   Adminable,
   Pausable,
   MarbleDutchAuctionInterface,
-  DutchAuctionEnumerable,
-  TokenPriceable
+  DutchAuctionEnumerable
 {
 
   /// @dev The ERC-165 interface signature for ERC-721.
@@ -30,11 +28,16 @@ contract MarbleDutchAuction is
   /// @param _tokenId ID of token to auction, sender must be owner.
   event AuctionRemoved(uint256 _tokenId);
 
+  /// @notice Reports a change of auctioneer cut
+  /// @param _auctioneerCut Number between 0-10000 (1% is equal to 100)
+  event AuctioneerCutChanged(uint256 _auctioneerCut);
+
+  /// @notice Reports change of auctioneer delayed cut for delayed cancel type auctions
+  /// @param _auctioneerDelayedCancelCut Number between 0-10000 (1% is equal to 100)
+  event AuctioneerDelayedCancelCutChanged(uint256 _auctioneerDelayedCancelCut);
+
   /// @notice Marble metatransactions contract
   address public marbleMetatransactionsContract;
-
-  /// @notice
-  ERC20 public marbleCoinContract;
 
   /// @notice Allows to execute the function only if it was executed by the marble metatransaction contract
   modifier onlyMetatransactionsContract 
@@ -90,6 +93,30 @@ contract MarbleDutchAuction is
       );
 
       super._addAuction(_tokenId, auction);
+  }
+
+  /// @notice Sets new auctioneer cut, in case we are to cheap :))
+  /// @param _cut Percent cut the auctioneer takes on each auction, must be between 0-10000. Values 0-10,000 map to 0%-100%
+  function setAuctioneerCut(uint256 _cut)
+    external
+    onlyAdmin
+  {
+    require(_cut <= 10000, "Cut should be in interval of 0-10000");
+    auctioneerCut = uint16(_cut);
+
+    emit AuctioneerCutChanged(auctioneerCut);
+  }
+
+  /// @notice Sets new auctioneer delayed cut, in case we are not earning much during creating NFTs initial auctions!
+  /// @param _cut Percent cut the auctioneer takes on each auction, must be between 0-10000. Values 0-10,000 map to 0%-100%.
+  function setAuctioneerDelayedCancelCut(uint256 _cut)
+    external
+    onlyAdmin
+  {
+    require(_cut <= 10000, "Delayed cut should be in interval of 0-10000");
+    auctioneerDelayedCancelCut = uint16(_cut);
+
+    emit AuctioneerDelayedCancelCutChanged(auctioneerDelayedCancelCut);
   }
 
   /// @notice Sets an addresses of ERC 721 contract owned/admined by same entity.
@@ -202,13 +229,12 @@ contract MarbleDutchAuction is
     external
     override
     whenNotPaused
-    tokenPrice(marbleCoinContract, _offer, msg.sender, "Bid on an auction")
   {
     Auction storage auction = tokenIdToAuction[_tokenId];
     require(_isOnAuction(auction), "NFT is not on this auction!");
     require(!auction.delayedCancel || !_durationIsOver(auction), "You can not bid on this auction, because it has delayed cancel policy actived and after times up it belongs once again to seller!");
 
-    _bid(_tokenId, _offer);
+    _bid(_tokenId, _offer, msg.sender);
 
     nftContract.transferFrom(address(this), msg.sender, _tokenId);
   }
@@ -223,13 +249,12 @@ contract MarbleDutchAuction is
     override
     whenNotPaused
     onlyMetatransactionsContract
-    tokenPrice(marbleCoinContract, _offer, _offerBy, "Bid on an auction")
   {
     Auction storage auction = tokenIdToAuction[_tokenId];
     require(_isOnAuction(auction), "NFT is not on this auction!");
     require(!auction.delayedCancel || !_durationIsOver(auction), "You can not bid on this auction, because it has delayed cancel policy actived and after times up it belongs once again to seller!");
 
-    _bid(_tokenId, _offer);
+    _bid(_tokenId, _offer, _offerBy);
 
     nftContract.transferFrom(address(this), _offerBy, _tokenId);
   }

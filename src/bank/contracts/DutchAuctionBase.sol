@@ -6,13 +6,15 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "./TokenPriceable.sol";
 
 
 /// @title Dutch Auction Base
 /// @dev Contains model defining Auction, public variables as reference to nftContract. It is expected that auctioneer is owner of the contract. Dutch auction by wiki - https://en.wikipedia.org/wiki/Dutch_auction. Contract is inspired by https://github.com/nedodn/NFT-Auction and https://github.com/dapperlabs/cryptokitties-bounty/tree/master/contracts/Auction/
 /// @notice Contract omits a fallback function to prevent accidental eth transfers.
 contract DutchAuctionBase is
-  ERC165
+  ERC165,
+  TokenPriceable
 {
 
   using SafeMath for uint128;
@@ -35,11 +37,19 @@ contract DutchAuctionBase is
     bool delayedCancel;
   }
 
+  /// @notice Owner of the contract is considered as Auctioneer, so it supposed to have some share from successful sale.
+  /// @dev Value in between 0-10000 (1% is equal to 100)
+  uint16 public auctioneerCut;
+
+  /// @notice Cut representing auctioneers earnings from auction with delayed cancel
+  /// @dev Value in between 0-10000 (1% is equal to 100)
+  uint16 public auctioneerDelayedCancelCut;
+
   /// @notice Reference to the NFT contract
   ERC721 public nftContract;
 
   /// @notice Reference to the MarbleCoin contract
-  ERC20 public mbcContract;
+  ERC20 public marbleCoinContract;
 
   /// @notice Maps token ID to its Auction
   mapping (uint256 => Auction) public tokenIdToAuction;
@@ -99,8 +109,9 @@ contract DutchAuctionBase is
 
   /// @dev Places bid on an auction
   /// @param _tokenId ID of the NFT
-  /// @param _offer value in MBC wei representing what buyer is willing to pay for the NFT
-  function _bid(uint256 _tokenId, uint256 _offer)
+  /// @param _offer value in MBC wei representing which the buyer is willing to pay for the NFT
+  /// @param _bidder address of the user who is bidding on the auction
+  function _bid(uint256 _tokenId, uint256 _offer, address _bidder)
     internal
   {
     Auction storage auction = tokenIdToAuction[_tokenId];
@@ -110,9 +121,21 @@ contract DutchAuctionBase is
     require(_offer >= price, "Bid amount has to be higher than or equal to the current price!");
 
     // Remove the auction before sending the fees to the sender so we can't have a reentrancy attack.
+    address auctionSeller = auction.seller;
+    bool delayedCancel = auction.delayedCancel;
     _removeAuction(_tokenId);
 
-    emit AuctionSuccessful(_tokenId, _offer, msg.sender);
+    if (price > 0) {
+      // Calculate the auctioneer's cut.
+      uint256 auctioneerRevenue = _computeCut(price, delayedCancel);
+      uint256 sellerRevenue = price.sub(auctioneerRevenue);
+
+      _pay(marbleCoinContract, price, _bidder, address(this), "Auctioneer's cut from Marble Dutch Auction");
+      marbleCoinContract.increaseAllowance(address(erc20Bank), sellerRevenue);
+      erc20Bank.deposit(marbleCoinContract, sellerRevenue, auctionSeller, "Seller's cut from Marble Dutch Auction");
+    }
+
+    emit AuctionSuccessful(_tokenId, price, _bidder);
   }
 
   /// @dev Returns true if the auction is valid
@@ -163,6 +186,22 @@ contract DutchAuctionBase is
 
         return uint256(currentPrice);
     }
+  }
+
+  /// @dev Computes auctioneer's cut from a sale
+  /// @param _price Sale price of NFT
+  /// @param _isCancelDelayed Determines what kind of cut is used for calculation
+  function _computeCut(uint256 _price, bool _isCancelDelayed)
+    internal
+    view
+    returns (uint256)
+  {
+
+    if (_isCancelDelayed) {
+      return _price * auctioneerDelayedCancelCut / 10000;
+    }
+
+    return _price * auctioneerCut / 10000;
   }
 
   /// @dev Removes auction from the given NFT

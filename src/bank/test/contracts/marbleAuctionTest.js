@@ -333,6 +333,7 @@ contract("MarbleAuctionTest", accounts => {
         await bankContract.deposit(erc20Contract.address, cost, morty.account , "deposit", {from: owner})
         await createNFT(tokenId, owner);
         await auctionContract.createAuction(tokenId, web3.utils.toBN(cost), web3.utils.toBN(cost), web3.utils.toBN(duration), {from: owner});
+        await auctionContract.setAuctioneerCut(2500);
 
         const result = await auctionContract.bid(tokenId, cost, { from: morty.account });
 
@@ -341,24 +342,81 @@ contract("MarbleAuctionTest", accounts => {
         });
       })
 
-      it("transfers mbc from the bidder to the seller", async () => {
+      it("transfers mbc correctly (from bidder to seller and auction)", async () => {
         const tokenId = 42;
         const cost = 512;
 
         await bankContract.deposit(erc20Contract.address, cost + 10, morty.account, "deposit", {from: owner})
-        const initialSellerBankBalance = await bankContract.userBalance(erc20Contract.address, morty.account);
         const initialOwnerBalance = await erc20Contract.balanceOf(owner);
+        const initialOwnerBankBalance = await bankContract.userBalance(erc20Contract.address, owner);
+        const initialBidderBankBalance = await bankContract.userBalance(erc20Contract.address, morty.account);
+        const initialAuctionBalance = await erc20Contract.balanceOf(auctionContract.address);
         await createNFT(tokenId, owner);
         await auctionContract.createAuction(tokenId, web3.utils.toBN(cost), web3.utils.toBN(cost), web3.utils.toBN(duration), {from: owner});
+        await auctionContract.setAuctioneerCut(2500);
+        await auctionContract.setAuctioneerDelayedCancelCut(0);
 
         await auctionContract.bid(tokenId, cost, { from: morty.account });
 
-        assert.equal((await erc20Contract.balanceOf(owner)).toString(), +initialOwnerBalance + cost);
-        assert.equal((await bankContract.userBalance(erc20Contract.address, morty.account)).toString(), initialSellerBankBalance - cost);
+
+        const currentOwnerBalance = await erc20Contract.balanceOf(owner);
+        const currentOwnerBankBalance = await bankContract.userBalance(erc20Contract.address, owner);
+        const currentAuctionContractBalance = await erc20Contract.balanceOf(auctionContract.address);
+        const currentBidderBankBalance = await bankContract.userBalance(erc20Contract.address, morty.account);
+
+        const expectedOwnerBalance = initialOwnerBalance;
+        const expectedOwnerBankBalance = initialOwnerBankBalance.add(web3.utils.toBN(cost * (3/4)));
+        const expectedAuctionContractBalance = initialAuctionBalance.add(web3.utils.toBN(cost * (1/4)));
+        const expectedBidderBankBalance = initialBidderBankBalance.sub(web3.utils.toBN(cost));
+
+        assert.equal(currentOwnerBalance.toString(), expectedOwnerBalance.toString(),
+          "Owner's erc20 balance should not have changed");
+        assert.equal(currentOwnerBankBalance.toString(), expectedOwnerBankBalance.toString(),
+          "Owner's balance in the bank should have increase by 3/4 of the auction cost (1/4 is auction contract's cut)");
+        assert.equal(currentAuctionContractBalance.toString(), expectedAuctionContractBalance.toString(),
+          "Auction contract's balance should have increased by 1/4 of the cost because the cut is 25%");
+        assert.equal(currentBidderBankBalance.toString(), expectedBidderBankBalance.toString(),
+          "Bidder's balance in bank should have decreased by the cost of the auction");
+      })
+
+      it("transfers mbc correctly (from bidder to seller and auction) ON INITIAL AUCTION", async () => {
+        const tokenId = 44;
+        const cost = 512;
+
+        await bankContract.deposit(erc20Contract.address, cost + 10, morty.account, "deposit", {from: owner})
+        const initialOwnerBalance = await erc20Contract.balanceOf(owner);
+        const initialOwnerBankBalance = await bankContract.userBalance(erc20Contract.address, owner);
+        const initialBidderBankBalance = await bankContract.userBalance(erc20Contract.address, morty.account);
+        const initialAuctionBalance = await erc20Contract.balanceOf(auctionContract.address);
+        await createNFT(tokenId, owner);
+        await auctionContract.createMintingAuction(tokenId, web3.utils.toBN(cost), web3.utils.toBN(cost), web3.utils.toBN(duration), owner, {from: owner});
+        await auctionContract.setAuctioneerCut(0);
+        await auctionContract.setAuctioneerDelayedCancelCut(2500);
+
+        await auctionContract.bid(tokenId, cost, { from: morty.account });
+
+        const currentOwnerBalance = await erc20Contract.balanceOf(owner);
+        const currentOwnerBankBalance = await bankContract.userBalance(erc20Contract.address, owner);
+        const currentAuctionContractBalance = await erc20Contract.balanceOf(auctionContract.address);
+        const currentBidderBankBalance = await bankContract.userBalance(erc20Contract.address, morty.account);
+
+        const expectedOwnerBalance = initialOwnerBalance;
+        const expectedOwnerBankBalance = initialOwnerBankBalance.add(web3.utils.toBN(cost * (3/4)));
+        const expectedAuctionContractBalance = initialAuctionBalance.add(web3.utils.toBN(cost * (1/4)));
+        const expectedBidderBankBalance = initialBidderBankBalance.sub(web3.utils.toBN(cost));
+
+        assert.equal(currentOwnerBalance.toString(), expectedOwnerBalance.toString(),
+          "Owner's erc20 balance should not have changed");
+        assert.equal(currentOwnerBankBalance.toString(), expectedOwnerBankBalance.toString(),
+          "Owner's bank balance should have increase by 3/4 of the auction cost (1/4 is auction contract's cut)");
+        assert.equal(currentAuctionContractBalance.toString(), expectedAuctionContractBalance.toString(),
+          "Auction contract's balance should have increased by 1/4 of the cost because the cut is 25%");
+        assert.equal(currentBidderBankBalance.toString(), expectedBidderBankBalance.toString(),
+          "Bidder's balance in bank should have decreased by the cost of the auction");
       })
 
       it("transfers the token to the bidder", async () => {
-        const tokenId = 43;
+        const tokenId = 45;
         const cost = 513;
 
         await bankContract.deposit(erc20Contract.address, cost, morty.account, "deposit", {from: owner})
@@ -401,6 +459,18 @@ contract("MarbleAuctionTest", accounts => {
 
     describe("removeAuction function", () => {
       // TODO: implement me
+    })
+
+    describe("withdraw tokens function", () => {
+      // TODO: implement me
+    })
+
+    describe("setAuctioneerCut function", () => {
+
+    })
+
+    describe("setAuctioneerDelayedCancelCut function", () => {
+      
     })
 
     // describe("setMetatransactionsContract function", () => {
