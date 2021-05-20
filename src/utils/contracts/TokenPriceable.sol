@@ -3,17 +3,13 @@ pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./TokenPriceableInterface.sol";
 import "../../bank/contracts/MarbleBankInterface.sol";
 
 
 /// @title TokenPriceable
 /// @notice This contract adds functionality to charge callees in ERC20 tokens
-contract TokenPriceable is Ownable {
-
-  /// @notice Event emitted when tokens of given amount are withdrawn from the contract (by owner)
-  /// @param token Address of the tokens which were withdrawn
-  /// @param amount Amount of the withdrawn tokens
-  event TokensWithdrawal(ERC20 token, uint256 amount);
+contract TokenPriceable is TokenPriceableInterface, Ownable {
 
   /// @notice Address of the bank contract
   /// @dev This contract is used to handle the token transactions
@@ -35,6 +31,7 @@ contract TokenPriceable is Ownable {
   /// @notice Sets the bank contract used to execute payments with erc20 tokens
   /// @param bank The contract address
   function setBankContract(MarbleBankInterface bank) 
+    override
     external 
     onlyOwner 
   {
@@ -59,6 +56,7 @@ contract TokenPriceable is Ownable {
   /// @dev Transfer all tokens of the given type to the owner of this contract
   /// @param token Address of the token
   function withdrawTokens(ERC20 token) 
+    override
     external 
     onlyOwner 
   {
