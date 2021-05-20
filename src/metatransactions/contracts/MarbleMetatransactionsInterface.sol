@@ -2,106 +2,23 @@
 pragma solidity 0.6.2;
 
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-
-
-/// @dev Partial interface of the MarbleNFT contract so that we can easily work with it
-abstract contract MarbleNFT {
-  function forceApproval(uint256 _tokenId, address _approved) external virtual;
-  function safeTransferFrom(address from, address to, uint256 tokenId) external virtual;
-  function transferFrom(address from, address to, uint256 tokenId) external virtual;
-}
-
-/// @dev Partial interface of the MarbleNFTCandidate contract so that we can easily work with it
-abstract contract MarbleNFTCandidate {
-  MarbleBank public erc20Bank;
-  function createCandidateWithERC20ForUser(string calldata _uri, address _erc20, address _owner) external virtual returns(uint256 index);
-}
-
-/// @dev Partial interface of the MarbleDutchAuction contract to easen our work with it
-abstract contract MarbleDutchAuction {
-  function createAuctionByMetatransaction(uint256 _tokenId, uint256 _startingPrice, uint256 _endingPrice, uint256 _duration, address _sender) external virtual;
-  function bidByMetatransaction(uint256 _tokenId, uint256 _offer, address _offerBy) external virtual;
-  function cancelAuctionByMetatransaction(uint256 _tokenId, address _sender) external virtual;
-  function getCurrentPrice(uint256 _tokenId) external virtual view returns (uint256);
-}
-
-/// @dev Partial interface of the MarbleNFTFactory contract so that we can easily work with it
-abstract contract MarbleNFTFactory {
-  MarbleNFT public marbleNFTContract;
-  MarbleNFTCandidate public marbleNFTCandidateContract;
-  MarbleDutchAuction public marbleDutchAuctionContract;
-}
-
-/// @dev Partial interface of the MarbleBank contract so that we can easily work with it
-abstract contract MarbleBank {
-  function payByAffiliate(address token, uint256 amount, address from, address to, string calldata note) external virtual;
-}
+import "./marble/MarbleNFTFactory.sol";
+import "./MarbleAuctionMetatransactionsInterface.sol";
+import "./MarbleBankMetatransactionsInterface.sol";
+import "./MarbleCandidateMetatransactionsInterface.sol";
+import "./MarbleNFTMetatransactionsInterface.sol";
 
 
 /// @title Metatransactions support for Marble.Card Dapp
 /// @dev Since our original contracts do not support metatransactions, we have implemented this wrapper contract
-interface MarbleMetatransactionsInterface {
-
-  /// @notice Creates page candidate using erc20 token for payment.
-  /// @dev Creates page candidate using the given uri for the given user. The user needs to have enough tokens deposited in the erc20 bank which is used by the candidate contract.
-  /// The full chain works as following:
-  ///   ---> user A signs the transaction 
-  ///   ---> relayer executes this method and extract address of A
-  ///   ---> this method initiates candidate creation for A on the candidate contract (requires permission so it cannot be called by anyone and waste someone else's tokens)
-  ///   ---> candidate contract issues payment to the bank contract (requires permission so it cannot be issued by anyone and waste someone else's tokens)
-  ///   ---> if A has enough tokens in the bank, they are used to pay for the candidate creation (else it reverts)
-  /// @param uri Uri of the candidate
-  /// @param erc20Token Address of the token in which the candidate creation should be paid
-  function createPageCandidateWithERC20(string calldata uri, address erc20Token) 
-    external;
-
-  /// @notice Executes payment transaction on bank contract
-  /// @dev The bank contract used is taken from the page candidate
-  /// @param erc20Token Address of the token of the payment
-  /// @param amount Amount of tokens t o be paid
-  /// @param to Address to which the payment shold be sent
-  /// @param note Note for the bank transaction
-  function executeBankPayment(address erc20Token, uint256 amount, address to, string calldata note)
-    external;
-
-  /// @notice Transfer NFT to another address
-  /// @dev Transfers nft from its current owner to new owner. This requires that this contract is admin of the NFT contract and that the signer owns the given token
-  /// @param toAddress Address of the new owner of the NFT
-  /// @param tokenId Id of the token to be transfered
-  function transferNft(address toAddress, uint256 tokenId) 
-    external;
+interface MarbleMetatransactionsInterface is MarbleAuctionMetatransactionsInterface, 
+  MarbleBankMetatransactionsInterface, MarbleCandidateMetatransactionsInterface, 
+  MarbleNFTMetatransactionsInterface 
+{
 
   /// @notice Sets the marble nft factory contract
   /// @dev Can be called only by the owner of this contract
   function setMarbleFactoryContract(MarbleNFTFactory _marbleNFTFactoryContract) 
     external;
 
-  /// @notice Puts the given NFT on auction If executed by the NFT owner
-  /// @param nftId ID of the NFT token to be put on the auction
-  /// @param startingPrice Initial price in the auction
-  /// @param endingPrice Price at the end of the dynamic price phase of the auction and afterwards
-  /// @param duration Duration of the dynamic price phase of the auction
-  function startAuction(uint256 nftId, uint256 startingPrice, uint256 endingPrice, uint256 duration)
-    external;
-
-  /// @notice Bids on an NFT if it is in an auction
-  /// @dev If the bid is high enough, the auction is immediatelly finished and the NFT transfered to the bidder
-  /// @param nftId ID of the NFT to bid on
-  /// @param offer Bid offer in MBC wei
-  function bidAuction(uint256 nftId, uint256 offer)
-    external;
-
-  /// @notice Cancels auction on given NFT if issued by the owner and not in the first phase of the initial auction
-  /// @param nftId ID of the NFT whose auction is to be canceled
-  function cancelAuction(uint256 nftId) 
-    external;
-
-  /// @notice Gets current price (in MBC wei) of a given NFT in an auction
-  /// @param nftId ID of the queried NFT
-  function getAuctionCurrentPrice(uint256 nftId)
-    external
-    view
-    returns(uint256);
-  
 }
