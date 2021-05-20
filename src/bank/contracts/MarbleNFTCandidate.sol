@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./Adminable.sol";
-import "./Priceable.sol";
-import "./TokenPriceable.sol";
-import "./Pausable.sol";
+import "../../utils/contracts/Adminable.sol";
+import "../../utils/contracts/Priceable.sol";
+import "../../utils/contracts/TokenPriceable.sol";
+import "../../utils/contracts/Pausable.sol";
 import "./MarbleNFTCandidateInterface.sol";
 
 

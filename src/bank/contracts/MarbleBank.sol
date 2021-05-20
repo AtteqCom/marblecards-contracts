@@ -3,7 +3,7 @@ pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./Pausable.sol";
+import "../../utils/contracts/Pausable.sol";
 import "./MarbleBankInterface.sol";
 import "./MarbleBankWithdrawAuthorizationInterface.sol";
 

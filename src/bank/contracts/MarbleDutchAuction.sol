@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "./DutchAuctionEnumerable.sol";
 import "./MarbleNFTInterface.sol";
-import "./Adminable.sol";
-import "./Pausable.sol";
+import "../../utils/contracts/Adminable.sol";
+import "../../utils/contracts/Pausable.sol";
 import "./MarbleDutchAuctionInterface.sol";
 
 /// @title Dutch auction for non-fungible tokens created by Marble.Cards.

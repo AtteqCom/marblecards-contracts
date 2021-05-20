@@ -15,6 +15,7 @@ builder:
     - "./build/bank:/marblegame/bank/build"
     - "./build/metatransactions:/marblegame/metatransactions/build"
     - "./build/erc20:/marblegame/erc20/build"
+    - "./build/utils:/marblegame/utils/build"
     - "./src/original/contracts:/marblegame/original/contracts"
     - "./src/original/deployments:/marblegame/original/deployments"
     - "./src/original/migrations:/marblegame/original/migrations"
@@ -28,6 +29,7 @@ builder:
     - "./src/metatransactions/test:/marblegame/metatransactions/test"
     - "./src/erc20/contracts:/marblegame/erc20/contracts"
     - "./src/erc20/migrations:/marblegame/erc20/migrations"
+    - "./src/utils/contracts:/marblegame/utils/contracts"
 ganache:
   image: trufflesuite/ganache-cli:latest
   command: ganache -p 8545 -h 0.0.0.0 --mnemonic "${mnemonic}" --blockTime 5

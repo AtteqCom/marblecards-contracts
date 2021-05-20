@@ -4,7 +4,7 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 // import "@0xcert/ethereum-erc721/contracts/tokens/NFTokenMetadata.sol";
 // import "@0xcert/ethereum-erc721/contracts/tokens/NFTokenEnumerable.sol";
-import "./Adminable.sol";
+import "../../utils/contracts/Adminable.sol";
 
 /**
  * @title MARBLE NFT CONTRACT for testing

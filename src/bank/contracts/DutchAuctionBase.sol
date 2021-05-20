@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./TokenPriceable.sol";
+import "../../utils/contracts/TokenPriceable.sol";
 
 
 /// @title Dutch Auction Base
