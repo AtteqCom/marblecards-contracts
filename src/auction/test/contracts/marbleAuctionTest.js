@@ -1,7 +1,8 @@
 const MarbleDutchAuction = artifacts.require("./MarbleDutchAuction.sol");
-const MarbleNFT = artifacts.require("./TestMarbleNFT.sol");
-const MarbleBank = artifacts.require("./MarbleBank.sol");
-const ERC20Coin = artifacts.require("./MetaCoin.sol");
+const MarbleNFT = artifacts.require("TestMarbleNFT.sol");
+const MarbleBank = artifacts.require("../../../bank/contracts/MarbleBank.sol");
+// const MarbleBank = artifacts.require("./../../bank/contracts/MarbleBank.sol");
+const ERC20Coin = artifacts.require("MetaCoin.sol");
 
 const logger = require('../utils/logger');
 const truffleAssert = require('truffle-assertions');
