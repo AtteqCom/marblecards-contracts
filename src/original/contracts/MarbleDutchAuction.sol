@@ -229,11 +229,11 @@ contract MarbleDutchAuction is
     external
     whenNotPaused
   {
-      Auction storage auction = tokenIdToAuction[_tokenId];
-      require(_isOnAuction(auction), "NFT is not auctioned over our contract!");
-      require((!auction.delayedCancel || _durationIsOver(auction)) && msg.sender == auction.seller, "You have no rights to cancel this auction!");
+    Auction storage auction = tokenIdToAuction[_tokenId];
+    require(_isOnAuction(auction), "NFT is not auctioned over our contract!");
+    require((!auction.delayedCancel || _durationIsOver(auction)) && msg.sender == auction.seller, "You have no rights to cancel this auction!");
 
-      _cancelAuction(_tokenId);
+    _cancelAuction(_tokenId);
   }
 
   /**
@@ -246,9 +246,9 @@ contract MarbleDutchAuction is
     whenPaused
     onlyAdmin
   {
-      Auction storage auction = tokenIdToAuction[_tokenId];
-      require(_isOnAuction(auction), "NFT is not auctioned over our contract!");
-      _cancelAuction(_tokenId);
+    Auction storage auction = tokenIdToAuction[_tokenId];
+    require(_isOnAuction(auction), "NFT is not auctioned over our contract!");
+    _cancelAuction(_tokenId);
   }
 
   /**
@@ -284,12 +284,12 @@ contract MarbleDutchAuction is
       require(_isOnAuction(auction), "NFT is not auctioned over our contract!");
 
       return (
-          auction.seller,
-          auction.startingPrice,
-          auction.endingPrice,
-          auction.duration,
-          auction.startedAt,
-          auction.delayedCancel
+        auction.seller,
+        auction.startingPrice,
+        auction.endingPrice,
+        auction.duration,
+        auction.startedAt,
+        auction.delayedCancel
       );
   }
 

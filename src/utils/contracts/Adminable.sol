@@ -2,10 +2,11 @@
 pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./AdminableInterface.sol";
 
 /// @title Adminable
 /// @dev Allows to manage privilages to special contract functionality.
-contract Adminable is Ownable {
+contract Adminable is AdminableInterface, Ownable {
 
   /// @notice Maps admin address to the admin's number
   mapping(address => uint) public adminsMap;
@@ -17,6 +18,7 @@ contract Adminable is Ownable {
   /// @param adminAddress Address to check
   /// @return isIndeed True, if provided address has special privilages, otherwise false
   function isAdmin(address adminAddress)
+    override
     public
     view
     returns(bool isIndeed)
@@ -32,6 +34,7 @@ contract Adminable is Ownable {
   /// @param adminAddress Address of future admin
   /// @return index Admin's number
   function addAdmin(address adminAddress)
+    override
     public
     onlyOwner
     returns(uint index)
@@ -50,6 +53,7 @@ contract Adminable is Ownable {
   /// @param adminAddress Address of current admin
   /// @return index Number of the removed admin
   function removeAdmin(address adminAddress)
+    override
     public
     onlyOwner
     returns(uint index)

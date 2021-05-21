@@ -4,16 +4,13 @@ pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./PriceableInterface.sol";
 
 /// @title Priceable
 /// @notice Contract allows to handle ETH resources of the contract
-contract Priceable is Ownable {
+contract Priceable is PriceableInterface, Ownable {
 
   using SafeMath for uint256;
-
-   /// @notice Emits when owner take ETH out of contract
-   /// @param balance Amount of ETh sent out from contract
-  event Withdraw(uint256 balance);
 
   /// @notice Checks minimal amount, that was sent to function call
   /// @param _minimalAmount Minimal amount neccessary to  continue function call
@@ -38,6 +35,7 @@ contract Priceable is Ownable {
 
   /// @notice Remove all Ether from the contract, and transfer it to account of owner
   function withdrawBalance()
+    override
     external
     onlyOwner
   {
@@ -49,7 +47,7 @@ contract Priceable is Ownable {
   }
 
   // fallback functions that allows contract to accept ETH
-  fallback() external payable {}
-  receive() external payable {}
+  fallback() override external payable {}
+  receive() override external payable {}
 
 }
