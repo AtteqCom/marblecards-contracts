@@ -29,7 +29,7 @@
     "@0xcert/ethereum-erc721": "1.10.0",
     "@0xcert/ethereum-utils": "1.1.0",
     "@opengsn/gsn": "^2.1.0",
-    "@openzeppelin/contracts": "3.3.0",
+    "@openzeppelin/contracts": "4.4.1",
     "@gnosis.pm/mock-contract": "^4.0.0",
     "ethereum-doppelganger": "0.0.7"
   }
